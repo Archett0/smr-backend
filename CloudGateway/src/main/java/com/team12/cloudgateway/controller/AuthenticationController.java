@@ -1,6 +1,8 @@
 package com.team12.cloudgateway.controller;
 
+import com.team12.cloudgateway.service.IdTokenService;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,9 +16,11 @@ import java.security.Principal;
 public class AuthenticationController {
 
     private final ReactiveOAuth2AuthorizedClientService clientService;
+    private final IdTokenService idTokenService;
 
-    public AuthenticationController(ReactiveOAuth2AuthorizedClientService clientService) {
+    public AuthenticationController(ReactiveOAuth2AuthorizedClientService clientService, IdTokenService idTokenService) {
         this.clientService = clientService;
+        this.idTokenService = idTokenService;
     }
 
     /**
@@ -41,5 +45,10 @@ public class AuthenticationController {
     @GetMapping("/test")
     public String printToken() {
         return "Pass";
+    }
+
+    @GetMapping("/test-intercept-id-token")
+    public Mono<String> testInterceptIdToken(OAuth2AuthenticationToken authentication) {
+        return idTokenService.getIdToken(authentication);
     }
 }

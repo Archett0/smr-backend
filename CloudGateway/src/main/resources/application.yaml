@@ -22,6 +22,12 @@ spring:
             - Path=/demo/**
           filters:
             - AddResponseHeader=X-Powered-By, SMR-CloudGateway-Service
+        - id: USER-SERVICE
+          uri: lb://user
+          predicates:
+            - Path=/auth/**
+          filters:
+            - AddResponseHeader=X-Powered-By, SMR-UserAuth-Service
 
   security:
     oauth2:
