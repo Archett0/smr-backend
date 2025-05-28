@@ -13,6 +13,7 @@
     <modules>
         <module>CloudGateway</module>
         <module>DemoService</module>
+        <module>UserService</module>
     </modules>
 
     <properties>
