@@ -1,0 +1,31 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: listing
+  cloud:
+    consul:
+      discovery:
+        heartbeat:
+          enabled: true
+        prefer-ip-address: true
+      host: localhost
+      port: 8500
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-jr5iip1iu6v8pylo.us.auth0.com/
+          jwk-set-uri: https://dev-jr5iip1iu6v8pylo.us.auth0.com/.well-known/jwks.json
+  datasource:
+    url: jdbc:mysql://localhost:3306/smr
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    show-sql: true
