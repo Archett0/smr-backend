@@ -11,6 +11,21 @@ services:
     volumes:
       - consul_data:/consul/data
 
+  mysql:
+    image: mysql
+    container_name: mysql-container
+    environment:
+      MYSQL_DATABASE: smr
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - smr_default
+
 networks:
   smr_default:
     driver: bridge
@@ -18,3 +33,4 @@ networks:
 
 volumes:
   consul_data:
+  mysql_data:
