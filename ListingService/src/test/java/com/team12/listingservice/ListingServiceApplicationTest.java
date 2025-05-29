@@ -1,12 +1,10 @@
 package com.team12.listingservice;
 
-import com.team12.listingservice.model.GeoLocation;
 import com.team12.listingservice.model.Property;
 import com.team12.listingservice.reponsitory.PropertyRepository;
 import com.team12.listingservice.service.PropertyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,7 +13,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class PropertyServiceTest {
+class ListingServiceApplicationTest {
 
     private PropertyRepository propertyRepository;
     private PropertyService propertyService;
