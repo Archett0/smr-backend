@@ -6,7 +6,9 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class BaseUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,5 +1,6 @@
 package com.team12.userservice.model;
 
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,5 +8,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
+@DiscriminatorValue("ADMIN")
 public class Admin extends BaseUser{
 }

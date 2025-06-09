@@ -11,6 +11,7 @@ import com.team12.userservice.model.Tenant;
 import com.team12.userservice.service.AdminService;
 import com.team12.userservice.service.AgentService;
 import com.team12.userservice.service.TenantService;
+import com.team12.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +30,16 @@ public class UserController {
     private final AdminService adminService;
     private final AgentService agentService;
     private final TenantService tenantService;
+    private final UserService userService;
 
-    public UserController(AdminService adminService, AgentService agentService, TenantService tenantService) {
+    public UserController(AdminService adminService,
+                          AgentService agentService,
+                          TenantService tenantService,
+                          UserService userService) {
         this.adminService = adminService;
         this.agentService = agentService;
         this.tenantService = tenantService;
+        this.userService = userService;
     }
 
     /**
@@ -52,11 +58,7 @@ public class UserController {
         }
         String roleStr = roles.getFirst();
         Role role = Role.valueOf(roleStr);
-        LoginCompleteDto completeDto = switch (role) {
-            case ADMIN -> adminService.loginOrRegister(dto);
-            case AGENT -> agentService.loginOrRegister(dto);
-            case TENANT -> tenantService.loginOrRegister(dto);
-        };
+        LoginCompleteDto completeDto = userService.loginOrRegister(dto, role);
         return ResponseEntity.ok(completeDto);
     }
 
