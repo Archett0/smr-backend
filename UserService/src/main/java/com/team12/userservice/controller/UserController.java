@@ -11,6 +11,8 @@ import com.team12.userservice.model.Tenant;
 import com.team12.userservice.service.AdminService;
 import com.team12.userservice.service.AgentService;
 import com.team12.userservice.service.TenantService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +23,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "User Controller APIs", description = "SMR login, user info, etc.")
 public class UserController {
 
     private final AdminService adminService;
@@ -41,6 +44,7 @@ public class UserController {
      * @return LoginCompleteDto
      */
     @PostMapping("/login")
+    @Operation(summary = "Call this after user passed Auth0", description = "To get user info within SMR platform")
     public ResponseEntity<LoginCompleteDto> login(@AuthenticationPrincipal Jwt jwt, @RequestBody UserRegisterDto dto) {
         List<String> roles = jwt.getClaimAsStringList("https://smr.com/roles");
         if (roles == null || roles.isEmpty()) {
