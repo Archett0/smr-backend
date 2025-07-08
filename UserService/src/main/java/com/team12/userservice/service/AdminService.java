@@ -28,6 +28,10 @@ public class AdminService {
         return adminRepository.findById(id).orElse(null);
     }
 
+    public Admin getAdminByOidcSub(String oidcSub) {
+        return adminRepository.findByOidcSub(oidcSub);
+    }
+
     public Admin updateAdmin(Admin admin) {
         return adminRepository.save(admin);
     }

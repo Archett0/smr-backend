@@ -26,6 +26,10 @@ public class TenantService {
         return tenantRepository.findById(id).orElse(null);
     }
 
+    public Tenant getTenantByOidcSub(String oidcSub) {
+        return tenantRepository.findByOidcSub(oidcSub);
+    }
+
     public Tenant updateTenant(Tenant tenant) {
         return tenantRepository.save(tenant);
     }

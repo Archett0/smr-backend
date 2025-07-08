@@ -28,6 +28,10 @@ public class AgentService {
         return agentRepository.findById(id).orElse(null);
     }
 
+    public Agent getAgentByOidcSub(String oidcSub) {
+        return agentRepository.findByOidcSub(oidcSub);
+    }
+
     public Agent updateAgent(Agent agent) {
         return agentRepository.save(agent);
     }

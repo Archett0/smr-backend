@@ -10,6 +10,7 @@ import com.team12.userservice.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -26,6 +27,10 @@ public class UserService {
         this.adminRepository = adminRepository;
         this.agentRepository = agentRepository;
         this.tenantRepository = tenantRepository;
+    }
+
+    public List<BaseUser> getUsers() {
+        return baseUserRepository.findAll();
     }
 
     public BaseUser getUserByOidcSub(String oidcSub) {
