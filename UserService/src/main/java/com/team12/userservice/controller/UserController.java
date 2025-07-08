@@ -1,9 +1,7 @@
 package com.team12.userservice.controller;
 
 
-import com.team12.userservice.dto.AssignNewRoleDto;
-import com.team12.userservice.dto.LoginCompleteDto;
-import com.team12.userservice.dto.UserRegisterDto;
+import com.team12.userservice.dto.*;
 import com.team12.userservice.model.*;
 import com.team12.userservice.service.AdminService;
 import com.team12.userservice.service.AgentService;
@@ -126,6 +124,55 @@ public class UserController {
     @GetMapping("/userList")
     public ResponseEntity<List<BaseUser>> getAllUsers() {
         return ResponseEntity.ok(userService.getUsers());
+    }
+
+    /**
+     * Update user's basic info
+     * @param jwt access token
+     * @param dto user info
+     * @return BaseUser generic type
+     */
+    @PutMapping("/updateUserInfo")
+    public ResponseEntity<BaseUser> updateUserInfo(@AuthenticationPrincipal Jwt jwt, @RequestBody UserInfoUpdateDto dto) {
+        Role role = getRoleFromJwt(jwt);
+        String currentSub = getOidcSubFromJwt(jwt);
+        if (Objects.equals(currentSub, dto.getOidcSub())) {
+            return ResponseEntity.ok(userService.updateUser(dto, role));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Update tenant preferences
+     * @param jwt access token
+     * @param dto preferences
+     * @return BaseUser generic type
+     */
+    @PutMapping("/updateTenantPref")
+    public ResponseEntity<BaseUser> updateTenantPref(@AuthenticationPrincipal Jwt jwt, @RequestBody TenantPrefUpdateDto dto) {
+        String currentSub = getOidcSubFromJwt(jwt);
+        if (Objects.equals(currentSub, dto.getOidcSub())) {
+            return ResponseEntity.ok(tenantService.updatePreference(dto));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Update agent preferences
+     * @param jwt access token
+     * @param dto preferences
+     * @return BaseUser generic type
+     */
+    @PutMapping("/updateAgentPref")
+    public ResponseEntity<BaseUser> updateAgentPref(@AuthenticationPrincipal Jwt jwt, @RequestBody AgentPrefUpdateDto dto) {
+        String currentSub = getOidcSubFromJwt(jwt);
+        if (Objects.equals(currentSub, dto.getOidcSub())) {
+            return ResponseEntity.ok(agentService.updatePreference(dto));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**

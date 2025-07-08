@@ -1,5 +1,6 @@
 package com.team12.userservice.service;
 
+import com.team12.userservice.dto.AgentPrefUpdateDto;
 import com.team12.userservice.model.Agent;
 import com.team12.userservice.model.Role;
 import com.team12.userservice.model.Tenant;
@@ -56,5 +57,12 @@ public class AgentService {
         newAgent.setPicture(tenant.getPicture());
         newAgent.setRole(Role.AGENT);
         return agentRepository.save(newAgent);
+    }
+
+    public Agent updatePreference(AgentPrefUpdateDto dto) {
+        Agent agent = agentRepository.findByOidcSub(dto.getOidcSub());
+        agent.setVerified(dto.isVerified());
+        agentRepository.save(agent);
+        return agent;
     }
 }

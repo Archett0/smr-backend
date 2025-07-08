@@ -1,6 +1,7 @@
 package com.team12.userservice.service;
 
 import com.team12.userservice.dto.LoginCompleteDto;
+import com.team12.userservice.dto.UserInfoUpdateDto;
 import com.team12.userservice.dto.UserRegisterDto;
 import com.team12.userservice.model.*;
 import com.team12.userservice.repository.AdminRepository;
@@ -78,5 +79,23 @@ public class UserService {
             case Tenant tenant -> tenantRepository.save(tenant);
             case null, default -> throw new IllegalArgumentException("Unknown user type");
         };
+    }
+
+    public BaseUser updateUser(UserInfoUpdateDto dto, Role role) {
+        String oidcSub = dto.getOidcSub();
+        BaseUser user = switch (role) {
+            case ADMIN -> adminRepository.findByOidcSub(oidcSub);
+            case AGENT -> agentRepository.findByOidcSub(oidcSub);
+            case TENANT -> tenantRepository.findByOidcSub(oidcSub);
+            case null -> throw new IllegalArgumentException("Unknown user type");
+        };
+        if (dto.getEmail() != null) {
+            user.setEmail(dto.getEmail());
+        }
+        if (dto.getPhoneNumber() != null) {
+            user.setPhoneNumber(dto.getPhoneNumber());
+        }
+        saveUser(user);
+        return user;
     }
 }
