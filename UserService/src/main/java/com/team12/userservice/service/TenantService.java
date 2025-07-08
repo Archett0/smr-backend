@@ -1,5 +1,6 @@
 package com.team12.userservice.service;
 
+import com.team12.userservice.dto.TenantPrefUpdateDto;
 import com.team12.userservice.model.Tenant;
 import com.team12.userservice.repository.TenantRepository;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,13 @@ public class TenantService {
     public Tenant findAndMarkRemoval(String oidcSub) {
         Tenant tenant = tenantRepository.findByOidcSub(oidcSub);
         tenant.setEnabled(false);
+        tenantRepository.save(tenant);
+        return tenant;
+    }
+
+    public Tenant updatePreference(TenantPrefUpdateDto dto) {
+        Tenant tenant = tenantRepository.findByOidcSub(dto.getOidcSub());
+        tenant.setPriceAlertEnabled(dto.isPriceAlertEnabled());
         tenantRepository.save(tenant);
         return tenant;
     }
