@@ -15,6 +15,7 @@
         <module>CloudGateway</module>
         <module>UserService</module>
         <module>ListingService</module>
+        <module>NotificationService</module>
     </modules>
 
     <properties>
