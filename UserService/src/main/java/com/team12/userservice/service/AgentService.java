@@ -1,14 +1,12 @@
 package com.team12.userservice.service;
 
-import com.team12.userservice.dto.LoginCompleteDto;
-import com.team12.userservice.dto.UserRegisterDto;
+import com.team12.userservice.dto.AgentPrefUpdateDto;
 import com.team12.userservice.model.Agent;
 import com.team12.userservice.model.Role;
 import com.team12.userservice.model.Tenant;
 import com.team12.userservice.repository.AgentRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,6 +29,10 @@ public class AgentService {
         return agentRepository.findById(id).orElse(null);
     }
 
+    public Agent getAgentByOidcSub(String oidcSub) {
+        return agentRepository.findByOidcSub(oidcSub);
+    }
+
     public Agent updateAgent(Agent agent) {
         return agentRepository.save(agent);
     }
@@ -41,29 +43,6 @@ public class AgentService {
 
     public boolean isRegistered(String oidcSub) {
         return agentRepository.findByOidcSub(oidcSub) != null;
-    }
-
-    public LoginCompleteDto loginOrRegister(UserRegisterDto registerDto) {
-        Agent agent = agentRepository.findByOidcSub(registerDto.getSub());
-        if (agent != null) {
-            agent.setLastLoginAt(LocalDateTime.now());
-            agentRepository.save(agent);
-            return new LoginCompleteDto(agent);
-        }
-        else {
-            Agent newAgent = new Agent();
-            newAgent.setOidcSub(registerDto.getSub());
-            newAgent.setVerified(false);
-            newAgent.setUsername(registerDto.getUsername());
-            newAgent.setEmail(registerDto.getEmail());
-            newAgent.setRegisteredAt(LocalDateTime.now());
-            newAgent.setLastLoginAt(LocalDateTime.now());
-            newAgent.setEnabled(true);
-            newAgent.setPicture(registerDto.getPicture());
-            newAgent.setRole(Role.AGENT);
-            Agent savedAgent = agentRepository.save(newAgent);
-            return new LoginCompleteDto(savedAgent);
-        }
     }
 
     public Agent reassignToAgent(Tenant tenant) {
@@ -78,5 +57,12 @@ public class AgentService {
         newAgent.setPicture(tenant.getPicture());
         newAgent.setRole(Role.AGENT);
         return agentRepository.save(newAgent);
+    }
+
+    public Agent updatePreference(AgentPrefUpdateDto dto) {
+        Agent agent = agentRepository.findByOidcSub(dto.getOidcSub());
+        agent.setVerified(dto.isVerified());
+        agentRepository.save(agent);
+        return agent;
     }
 }

@@ -26,6 +26,19 @@ services:
     networks:
       - smr_default
 
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: rabbitmq-container
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: 123456
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - smr_default
+
 networks:
   smr_default:
     driver: bridge
