@@ -1,0 +1,83 @@
+server:
+  port: 8084
+
+spring:
+  profiles:
+    active: cloud
+  application:
+    name: search
+  cloud:
+    consul:
+      discovery:
+        heartbeat:
+          enabled: true
+        prefer-ip-address: true
+      host: localhost
+      port: 8500
+  
+  # Elasticsearch Configuration
+  elasticsearch:
+    uris: http://localhost:9200
+    username: 
+    password: 
+    connection-timeout: 10s
+    socket-timeout: 60s
+
+  # Redis Configuration for Caching
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: 123456
+    virtual-host: /
+
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-jr5iip1iu6v8pylo.us.auth0.com/
+          jwk-set-uri: https://dev-jr5iip1iu6v8pylo.us.auth0.com/.well-known/jwks.json
+
+  # Cache Configuration
+  cache:
+    type: redis
+    cache-names:
+      - propertySearch
+      - trendingKeywords
+      - cityAggregations
+      - priceRangeAggregations
+    redis:
+      time-to-live: 300000 # 5 minutes
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Logging Configuration
+logging:
+  level:
+    com.team12.searchservice: DEBUG
+    org.springframework.data.elasticsearch: DEBUG
+    org.springframework.amqp: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" 
