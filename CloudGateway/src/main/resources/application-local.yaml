@@ -1,0 +1,68 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    consul:
+      enabled: false
+      discovery:
+        enabled: false
+        register: false
+    gateway:
+      default-filters:
+        - TokenRelay
+      routes:
+        - id: DEMO-SERVICE
+          uri: http://localhost:8081
+          predicates:
+            - Path=/demo/**
+          filters:
+            - AddResponseHeader=X-Powered-By, SMR-CloudGateway-Service
+        - id: USER-SERVICE
+          uri: http://localhost:8082
+          predicates:
+            - Path=/auth/**
+          filters:
+            - AddResponseHeader=X-Powered-By, SMR-UserAuth-Service
+        - id: LISTING-SERVICE
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/properties/**
+          filters:
+            - AddResponseHeader=X-Powered-By, SMR-Listing-Service
+        - id: SEARCH-SERVICE
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/search/**
+          filters:
+            - AddResponseHeader=X-Powered-By, SMR-Search-Service
+        - id: NOTIFICATION-SERVICE
+          uri: http://localhost:8085
+          predicates:
+            - Path=/notification/**
+          filters:
+            - AddResponseHeader=X-Powered-By, SMR-Notification-Service
+        - id: WEBSOCKET-ROUTE
+          uri: http://localhost:8085
+          predicates:
+            - Path=/ws/**
+          filters:
+            - AddResponseHeader=X-Request-Type, WebSocket
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-jr5iip1iu6v8pylo.us.auth0.com/
+          jwk-set-uri: https://dev-jr5iip1iu6v8pylo.us.auth0.com/.well-known/jwks.json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always 
