@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(indexName = "users")
-@Setting(numberOfShards = 1, numberOfReplicas = 0)
+@Setting(shards = 1, replicas = 0)
 public class UserDocument {
 
     @Id

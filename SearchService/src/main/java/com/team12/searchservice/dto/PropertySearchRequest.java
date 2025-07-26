@@ -74,13 +74,17 @@ public class PropertySearchRequest {
     
     // Pagination
     @Min(value = 0, message = "Page number cannot be negative")
+    @Builder.Default
     private Integer page = 0;
     
     @Min(value = 1, message = "Page size must be at least 1")
     @Max(value = 100, message = "Page size cannot exceed 100")
+    @Builder.Default
     private Integer size = 20;
     
     // Search mode
+    @Builder.Default
     private Boolean fuzzySearch = false;
+    @Builder.Default
     private Boolean highlightResults = false;
 } 

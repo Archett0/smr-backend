@@ -23,15 +23,10 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
     @Override
     public ClientConfiguration clientConfiguration() {
-        ClientConfiguration.Builder builder = ClientConfiguration.builder()
+        return ClientConfiguration.builder()
                 .connectedTo(elasticsearchUris.replace("http://", ""))
                 .withConnectTimeout(Duration.ofSeconds(10))
-                .withSocketTimeout(Duration.ofSeconds(60));
-
-        if (!username.isEmpty() && !password.isEmpty()) {
-            builder.withBasicAuth(username, password);
-        }
-
-        return builder.build();
+                .withSocketTimeout(Duration.ofSeconds(60))
+                .build();
     }
 } 

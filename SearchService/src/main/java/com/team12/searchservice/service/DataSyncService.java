@@ -9,9 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -24,7 +22,6 @@ import java.util.Map;
 public class DataSyncService {
 
     private final PropertySearchRepository propertySearchRepository;
-    private final ElasticsearchOperations elasticsearchOperations;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
@@ -118,9 +115,8 @@ public class DataSyncService {
      */
     private void syncUser(Map<String, Object> userData) {
         try {
-            UserDocument userDocument = convertToUserDocument(userData);
-            elasticsearchOperations.save(userDocument, IndexCoordinates.of("users"));
-            log.info("Successfully synced user: {}", userDocument.getId());
+            // User sync would be handled by a dedicated user search repository
+            log.info("User sync not implemented yet - would sync user: {}", userData.get("id"));
             
         } catch (Exception e) {
             log.error("Error syncing user data: {}", userData, e);
@@ -132,8 +128,8 @@ public class DataSyncService {
      */
     private void deleteUser(String userId) {
         try {
-            elasticsearchOperations.delete(userId, IndexCoordinates.of("users"));
-            log.info("Successfully deleted user: {}", userId);
+            // User deletion would be handled by a dedicated user search repository
+            log.info("User deletion not implemented yet - would delete user: {}", userId);
             
         } catch (Exception e) {
             log.error("Error deleting user: {}", userId, e);

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(indexName = "properties")
-@Setting(numberOfShards = 1, numberOfReplicas = 0)
+@Setting(shards = 1, replicas = 0)
 public class PropertyDocument {
 
     @Id
