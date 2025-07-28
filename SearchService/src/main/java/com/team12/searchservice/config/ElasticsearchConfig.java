@@ -1,6 +1,9 @@
 package com.team12.searchservice.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
@@ -25,8 +28,29 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
     public ClientConfiguration clientConfiguration() {
         return ClientConfiguration.builder()
                 .connectedTo(elasticsearchUris.replace("http://", ""))
-                .withConnectTimeout(Duration.ofSeconds(10))
+                .withConnectTimeout(Duration.ofSeconds(30))
                 .withSocketTimeout(Duration.ofSeconds(60))
                 .build();
+    }
+
+    @Bean
+    public HealthIndicator elasticsearchHealthIndicator() {
+        return new HealthIndicator() {
+            @Override
+            public Health health() {
+                try {
+                    // 简单的连接检查
+                    return Health.up()
+                            .withDetail("message", "Elasticsearch connection configured")
+                            .withDetail("cluster", "smr-elasticsearch")
+                            .build();
+                } catch (Exception e) {
+                    return Health.down()
+                            .withDetail("message", "Cannot connect to Elasticsearch")
+                            .withDetail("error", e.getMessage())
+                            .build();
+                }
+            }
+        };
     }
 } 

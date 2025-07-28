@@ -6,10 +6,12 @@ spring:
     name: gateway
   cloud:
     consul:
-      enabled: false
       discovery:
-        enabled: false
-        register: false
+        heartbeat:
+          enabled: true
+        prefer-ip-address: true
+      host: localhost
+      port: 8500
     gateway:
       default-filters:
         - TokenRelay
