@@ -39,7 +39,6 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             @Override
             public Health health() {
                 try {
-                    // 简单的连接检查
                     return Health.up()
                             .withDetail("message", "Elasticsearch connection configured")
                             .withDetail("cluster", "smr-elasticsearch")
