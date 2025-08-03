@@ -1,6 +1,6 @@
 server:
   port: 9090
-
+   
 spring:
   profiles:
     active: cloud
@@ -42,7 +42,12 @@ spring:
             - Path=/ws/**
           filters:
             - AddResponseHeader=X-Request-Type, WebSocket
-
+        - id: LISTING-SERVICE
+          uri: lb://listing
+          predicates:
+            - Path=/listing/**
+          filters:
+            - AddResponseHeader=X-Powered-By, SMR-Listing-Service
 
 
   security:

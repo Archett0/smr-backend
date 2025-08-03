@@ -42,8 +42,13 @@ public class Property {
     @Column(nullable = false)
     private boolean available;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "posted_at", nullable = false)
     private LocalDateTime postedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.postedAt = LocalDateTime.now();
+    }
 
     @Column(nullable = false, length = 64)
     private String agentId;
