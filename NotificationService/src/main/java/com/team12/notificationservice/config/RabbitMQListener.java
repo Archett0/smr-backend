@@ -25,8 +25,8 @@ public class RabbitMQListener {
         try {
             NotificationDto notificationDTO = NotificationDto.builder()
                     .id(notification.getId())
-                    .tenantId(notification.getTenantId())
-                    .agentId(notification.getAgentId())
+                    .fromId(notification.getFromId())
+                    .toId(notification.getToId())
                     .message(notification.getMessage())
                     .type(notification.getType())
                     .isRead(notification.isIsread())
@@ -35,13 +35,13 @@ public class RabbitMQListener {
 
             String notificationJson = objectMapper.writeValueAsString(notificationDTO);
 
-            String userId = notification.getTenantId();
+            String userId = notification.getToId();
 
             messagingService.sendMessageToUser(userId, notificationJson);
 
             log.info("Forwarded notification to user: {} with message: {}", userId, notificationJson);
         } catch (IllegalArgumentException e) {
-            log.error("Invalid String format for agentId: {}", notification.getAgentId());
+            log.error("Invalid String format for agentId: {}", notification.getToId());
         } catch (JsonProcessingException e) {
             log.error("Error while converting notification to JSON", e);
         }

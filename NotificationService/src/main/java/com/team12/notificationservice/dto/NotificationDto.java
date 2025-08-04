@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 @Builder
 public class NotificationDto {
     private Long id;
-    private String tenantId;
-    private String agentId;
+    private String fromId;
+    private String toId;
     private String message;
     private NotificationType type;
     private boolean isRead;

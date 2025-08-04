@@ -32,8 +32,8 @@ public class NotificationService {
 
     public Notification createNotification(Notification request) {
         Notification notification = Notification.builder()
-                .tenantId(request.getTenantId())
-                .agentId(request.getAgentId())
+                .fromId(request.getFromId())
+                .toId(request.getToId())
                 .message(request.getMessage())
                 .type(request.getType())
                 .isread(false)
@@ -43,7 +43,7 @@ public class NotificationService {
         executorService.submit(() -> {
             amqpTemplate.convertAndSend("notification.exchange", "notification.routing.key", notification);
 
-            log.info("Notification sent and saved to database for tenant: {}", request.getTenantId());
+            log.info("Notification sent and saved to database for tenant: {}", request.getToId());
         });
 
         return notificationRepository.save(notification);
@@ -58,12 +58,12 @@ public class NotificationService {
         return notificationRepository.findById(id);
     }
 
-    public List<Notification> getByTenantId(String tenantId) {
-        return notificationRepository.findByTenantId(tenantId);
+    public List<Notification> getByFromId(String fromId) {
+        return notificationRepository.findByFromId(fromId);
     }
 
-    public List<Notification> getByAgentId(String agentId) {
-        return notificationRepository.findByAgentId(agentId);
+    public List<Notification> getByToId(String toId) {
+        return notificationRepository.findByToId(toId);
     }
 
     public Notification updateNotification(Notification notification) {

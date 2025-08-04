@@ -21,10 +21,10 @@ public class Notification {
     private Long id;
 
     @Column(nullable = false, length = 64)
-    private String tenantId;
+    private String fromId;
 
-    @Column(length = 64)
-    private String agentId;
+    @Column(nullable = false, length = 64)
+    private String toId;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String message;

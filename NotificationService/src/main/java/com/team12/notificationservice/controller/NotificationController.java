@@ -40,16 +40,16 @@ public class NotificationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/tenant/{tenantId}")
-    @Operation(summary = "Get notifications by tenant ID")
-    public ResponseEntity<List<Notification>> getByTenant(@PathVariable String tenantId) {
-        return ResponseEntity.ok(notificationService.getByTenantId(tenantId));
+    @GetMapping("/from/{fromId}")
+    @Operation(summary = "Get notifications by from ID")
+    public ResponseEntity<List<Notification>> getByFrom(@PathVariable String fromId) {
+        return ResponseEntity.ok(notificationService.getByFromId(fromId));
     }
 
-    @GetMapping("/agent/{agentId}")
-    @Operation(summary = "Get notifications by agent ID")
-    public ResponseEntity<List<Notification>> getByAgent(@PathVariable String agentId) {
-        return ResponseEntity.ok(notificationService.getByAgentId(agentId));
+    @GetMapping("/to/{toId}")
+    @Operation(summary = "Get notifications by to ID")
+    public ResponseEntity<List<Notification>> getByTo(@PathVariable String toId) {
+        return ResponseEntity.ok(notificationService.getByToId(toId));
     }
 
     @PutMapping
