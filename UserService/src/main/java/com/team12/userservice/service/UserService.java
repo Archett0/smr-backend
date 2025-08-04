@@ -98,4 +98,15 @@ public class UserService {
         saveUser(user);
         return user;
     }
+
+    public BaseUser updateUserStatus(Long userId, boolean enabled) throws Exception {
+        BaseUser user = baseUserRepository.findById(userId)
+                .orElseThrow(() -> new Exception("User not found"));
+        if (user.getRole() == Role.ADMIN) {
+            throw new Exception("NOT ALLOWED");
+        }
+        user.setEnabled(enabled);
+        baseUserRepository.save(user);
+        return user;
+    }
 }

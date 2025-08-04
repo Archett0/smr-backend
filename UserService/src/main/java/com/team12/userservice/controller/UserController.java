@@ -9,6 +9,7 @@ import com.team12.userservice.service.TenantService;
 import com.team12.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -124,6 +125,22 @@ public class UserController {
     @GetMapping("/userList")
     public ResponseEntity<List<BaseUser>> getAllUsers() {
         return ResponseEntity.ok(userService.getUsers());
+    }
+
+    /**
+     * Enable or disable a user
+     * @param updateDto UserStatusUpdateDto
+     * @return Updated baseUser
+     */
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PutMapping("/updateUserStatus")
+    public ResponseEntity<BaseUser> updateUserStatus(@RequestBody UserStatusUpdateDto updateDto) {
+        try {
+            BaseUser user = userService.updateUserStatus(updateDto.getUserId(), updateDto.isEnabled());
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
