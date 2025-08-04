@@ -3,6 +3,7 @@ package com.team12.notificationservice.service;
 import com.team12.notificationservice.dto.NotificationDto;
 import com.team12.notificationservice.model.Notification;
 import com.team12.notificationservice.repository.NotificationRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -70,6 +71,9 @@ public class NotificationService {
     }
 
     public void deleteNotification(Long id) {
-        notificationRepository.deleteById(id);
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Notification not found: " + id));
+        notification.setIsread(true);
+        notificationRepository.save(notification);
     }
 }
