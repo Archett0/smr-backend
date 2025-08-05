@@ -1,4 +1,4 @@
-package com.team12.notificationservice;
+package com.team12.useractionservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
