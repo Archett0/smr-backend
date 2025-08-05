@@ -1,17 +1,13 @@
 package com.team12.userservice.service;
 
-import com.team12.userservice.dto.LoginCompleteDto;
-import com.team12.userservice.dto.UserInfoUpdateDto;
-import com.team12.userservice.dto.UserRegisterDto;
+import com.team12.userservice.dto.*;
 import com.team12.userservice.model.*;
-import com.team12.userservice.repository.AdminRepository;
-import com.team12.userservice.repository.AgentRepository;
-import com.team12.userservice.repository.BaseUserRepository;
-import com.team12.userservice.repository.TenantRepository;
+import com.team12.userservice.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -19,15 +15,18 @@ public class UserService {
     private final AdminRepository adminRepository;
     private final AgentRepository agentRepository;
     private final TenantRepository tenantRepository;
+    private final IdentityVerificationRepository idVRepository;
 
     public UserService(BaseUserRepository baseUserRepository,
                        AdminRepository adminRepository,
                        AgentRepository agentRepository,
-                       TenantRepository tenantRepository) {
+                       TenantRepository tenantRepository,
+                       IdentityVerificationRepository idVRepository) {
         this.baseUserRepository = baseUserRepository;
         this.adminRepository = adminRepository;
         this.agentRepository = agentRepository;
         this.tenantRepository = tenantRepository;
+        this.idVRepository = idVRepository;
     }
 
     public List<BaseUser> getUsers() {
@@ -108,5 +107,57 @@ public class UserService {
         user.setEnabled(enabled);
         baseUserRepository.save(user);
         return user;
+    }
+
+    public List<IdentityVerification> getAllIdentityVerifications() {
+        return idVRepository.findAll();
+    }
+
+    public List<IdentityVerification> getAllSubmittedIdentityVerifications() {
+        return idVRepository.findByStatus(VerificationStatus.SUBMITTED);
+    }
+
+    public List<IdentityVerification> getIdentityVerificationsByAgent(String agentAuth0Id) {
+        return idVRepository.findByAgentAuth0Id(agentAuth0Id);
+    }
+
+    public boolean canSubmitApplication(String agentAuth0Id) {
+        List<VerificationStatus> statuses = List.of(VerificationStatus.SUBMITTED, VerificationStatus.APPROVED);
+        Optional<IdentityVerification> existingApplication = idVRepository.findByAgentAuth0IdAndStatusIn(agentAuth0Id, statuses);
+        return existingApplication.isEmpty();
+    }
+
+    public IdentityVerification submitIdentityVerification(IdentityVerificationSubmitDto submitDto) throws Exception {
+        if (!canSubmitApplication(submitDto.getAgentAuth0Id())) {
+            throw new IllegalStateException("Cannot submit more than one active application.");
+        }
+        IdentityVerification newApplication = new IdentityVerification();
+        newApplication.setAgentAuth0Id(submitDto.getAgentAuth0Id());
+        newApplication.setReason(submitDto.getReason());
+        newApplication.setPdfUrl(submitDto.getPdfUrl());
+        newApplication.setStatus(VerificationStatus.SUBMITTED);
+        newApplication.setCreatedAt(LocalDateTime.now());
+        newApplication.setUpdatedAt(LocalDateTime.now());
+        return idVRepository.save(newApplication);
+    }
+
+    public IdentityVerification reviewIdentityVerification(IdentityVerificationReviewDto reviewDto) throws Exception {
+        Optional<IdentityVerification> optionalApplication = idVRepository.findById(reviewDto.getId());
+        if (optionalApplication.isEmpty()) {
+            throw new IllegalArgumentException("Application not found");
+        }
+        IdentityVerification application = optionalApplication.get();
+        application.setStatus(reviewDto.getStatus());
+        application.setUpdatedAt(LocalDateTime.now());
+        return idVRepository.save(application);
+    }
+
+    public Agent setAgentVerified(String agentAuth0Id) throws Exception {
+        Agent agent = agentRepository.findByOidcSub(agentAuth0Id);
+        if (agent == null) {
+            throw new IllegalArgumentException("Agent not found");
+        }
+        agent.setVerified(true);
+        return agentRepository.save(agent);
     }
 }
