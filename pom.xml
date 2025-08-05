@@ -17,6 +17,8 @@
         <module>ListingService</module>
         <module>NotificationService</module>
         <module>Clients</module>
+        <module>UserActionService</module>
+        <module>RecommendationService</module>
     </modules>
 
     <properties>
