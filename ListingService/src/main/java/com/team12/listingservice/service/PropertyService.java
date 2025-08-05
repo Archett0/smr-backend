@@ -1,26 +1,35 @@
 package com.team12.listingservice.service;
 
+import com.team12.clients.notification.NotificationClient;
+import com.team12.clients.notification.dto.NotificationRequest;
+import com.team12.clients.notification.dto.NotificationType;
 import com.team12.listingservice.model.Property;
 import com.team12.listingservice.reponsitory.PropertyRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class PropertyService {
 
     private final PropertyRepository propertyRepository;
-
-    public PropertyService(PropertyRepository propertyRepository) {
-        this.propertyRepository = propertyRepository;
-    }
+    private final NotificationClient notificationClient;
 
     public List<Property> getAllProperties() {
         return propertyRepository.findAll();
     }
 
     public Optional<Property> getPropertyById(Long id) {
+//        NotificationRequest notificationRequest = new NotificationRequest(
+//                "1",
+//                "test",
+//                NotificationType.SYSTEM
+//        );
+//        notificationClient.sendNotification(notificationRequest);
         return propertyRepository.findById(id);
     }
 
@@ -50,4 +59,5 @@ public class PropertyService {
     public Property addProperty(Property property) {
         return property;
     }
+
 }

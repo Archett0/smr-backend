@@ -1,7 +1,9 @@
 package com.team12.notificationservice.service;
 
+import com.team12.clients.notification.dto.NotificationRequest;
 import com.team12.notificationservice.dto.NotificationDto;
 import com.team12.notificationservice.model.Notification;
+import com.team12.notificationservice.model.NotificationType;
 import com.team12.notificationservice.repository.NotificationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -44,6 +46,25 @@ public class NotificationService {
             amqpTemplate.convertAndSend("notification.exchange", "notification.routing.key", notification);
 
             log.info("Notification sent and saved to database for tenant: {}", request.getToId());
+        });
+
+        return notificationRepository.save(notification);
+    }
+
+    public Notification sendNotification(NotificationRequest notificationRequest) {
+        Notification notification = Notification.builder()
+                .fromId("1")
+                .toId(notificationRequest.toUserId())
+                .message(notificationRequest.message())
+                .type(NotificationType.SYSTEM)
+                .isread(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        executorService.submit(() -> {
+            amqpTemplate.convertAndSend("notification.exchange", "notification.routing.key", notification);
+
+            log.info("Notification sent and saved to database for tenant: {}", notificationRequest.toUserId());
         });
 
         return notificationRepository.save(notification);

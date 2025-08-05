@@ -4,12 +4,14 @@ import com.team12.listingservice.model.Property;
 import com.team12.listingservice.service.PropertyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/listing")
-
+@Tag(name = "Property Controller APIs", description = "CRUD for property")
 public class PropertyController {
 
     private final PropertyService propertyService;

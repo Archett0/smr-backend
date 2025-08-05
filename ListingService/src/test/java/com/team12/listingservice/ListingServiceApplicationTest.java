@@ -1,5 +1,6 @@
 package com.team12.listingservice;
 
+import com.team12.clients.notification.NotificationClient;
 import com.team12.listingservice.model.Property;
 import com.team12.listingservice.reponsitory.PropertyRepository;
 import com.team12.listingservice.service.PropertyService;
@@ -16,12 +17,13 @@ import static org.mockito.Mockito.*;
 class ListingServiceApplicationTest {
 
     private PropertyRepository propertyRepository;
+    private NotificationClient notificationClient;
     private PropertyService propertyService;
 
     @BeforeEach
     void setUp() {
         propertyRepository = mock(PropertyRepository.class);
-        propertyService = new PropertyService(propertyRepository);
+        propertyService = new PropertyService(propertyRepository, notificationClient);
     }
 
     private Property createSampleProperty(Long id) {
