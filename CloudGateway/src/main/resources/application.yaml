@@ -30,12 +30,6 @@ spring:
             - Path=/auth/**
           filters:
             - AddResponseHeader=X-Powered-By, SMR-UserAuth-Service
-        - id: LISTING-SERVICE
-          uri: lb://listing
-          predicates:
-            - Path=/api/properties/**
-          filters:
-            - AddResponseHeader=X-Powered-By, SMR-Listing-Service
         - id: SEARCH-SERVICE
           uri: lb://search
           predicates:
