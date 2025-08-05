@@ -5,6 +5,7 @@ import com.team12.notificationservice.model.Notification;
 import com.team12.notificationservice.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.createNotification(notification));
     }
 
-    @PostMapping("send")
+    @PostMapping("/send")
     public void sendNotification(@RequestBody NotificationRequest notificationRequest) {
         //log.info("New notification... {}", notificationRequest);
         notificationService.sendNotification(notificationRequest);
@@ -70,5 +71,23 @@ public class NotificationController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         notificationService.deleteNotification(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/acceptApp/{id}")
+    public ResponseEntity<Notification> acceptApplication(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(notificationService.acceptNotification(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/denyApp/{id}")
+    public ResponseEntity<Notification> denyApplication(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(notificationService.denyNotification(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
