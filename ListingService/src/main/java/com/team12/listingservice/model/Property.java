@@ -27,7 +27,7 @@ public class Property {
     @Column(nullable = false, length = 255)
     private String address;
 
-    @Column(length = 255)
+    @Column(length = 2550)
     private String img;
 
     @Embedded
