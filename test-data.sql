@@ -278,7 +278,7 @@ INSERT INTO notification (
 ) VALUES
     ('auth0|683554001b464400d0f44b31f', 'auth0|agent001', 
      'New property matching your criteria: Modern CBD Apartment in Marina Bay', 
-     'PROPERTY_MATCH', false, '2024-02-01 10:00:00'),
+     'SYSTEM', false, '2024-02-01 10:00:00'),
     
     ('auth0|tenant002', 'auth0|agent002', 
      'Price drop alert: Luxury Orchard Penthouse now SGD $8500/month (was SGD $9000)', 
@@ -286,11 +286,11 @@ INSERT INTO notification (
     
     ('auth0|tenant003', 'auth0|agent001', 
      'Your application for Cozy Studio Near NUS has been received', 
-     'APPLICATION_STATUS', true, '2024-02-01 14:15:00'),
+     'SYSTEM', true, '2024-02-01 14:15:00'),
     
     ('auth0|683554001b464400d0f44b31f', 'auth0|agent002', 
      'Viewing scheduled for Family Condo in Punggol on Feb 5th at 2:00 PM', 
-     'VIEWING_SCHEDULED', false, '2024-02-01 16:45:00'),
+     'VIEWING_CONFIRM', false, '2024-02-01 16:45:00'),
     
     ('auth0|tenant002', 'auth0|agent003', 
      'Welcome to SMR Singapore! Complete your profile to get better property matches', 

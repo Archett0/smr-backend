@@ -26,7 +26,6 @@ public class PropertySearchController {
      * Comprehensive property search
      */
     @PostMapping("/search")
-    @Cacheable(value = "propertySearch", key = "#request.hashCode()")
     public ResponseEntity<SearchResponse<PropertyDocument>> searchProperties(
             @Valid @RequestBody PropertySearchRequest request) {
         
@@ -129,7 +128,6 @@ public class PropertySearchController {
      * Trending search keywords
      */
     @GetMapping("/trending")
-    @Cacheable(value = "trendingKeywords", key = "'trending'")
     public ResponseEntity<List<String>> getTrendingKeywords(
             @RequestParam(defaultValue = "10") Integer limit) {
         
@@ -141,7 +139,6 @@ public class PropertySearchController {
      * City aggregations
      */
     @GetMapping("/aggregations/cities")
-    @Cacheable(value = "cityAggregations", key = "'cities'")
     public ResponseEntity<Map<String, Long>> getCityAggregations() {
         Map<String, Long> cityStats = propertySearchService.getCityAggregations();
         return ResponseEntity.ok(cityStats);
@@ -151,7 +148,6 @@ public class PropertySearchController {
      * Price range aggregations
      */
     @GetMapping("/aggregations/price-ranges")
-    @Cacheable(value = "priceRangeAggregations", key = "'price-ranges'")
     public ResponseEntity<Map<String, Long>> getPriceRangeAggregations() {
         Map<String, Long> priceRanges = propertySearchService.getPriceRangeAggregations();
         return ResponseEntity.ok(priceRanges);
