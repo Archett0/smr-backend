@@ -193,6 +193,73 @@ public class UserController {
     }
 
     /**
+     * Get all IdV
+     * @return List of IdentityVerification
+     */
+    @GetMapping("/getAllApps")
+    public ResponseEntity<List<IdentityVerification>> getAllApplications() {
+        List<IdentityVerification> applications = userService.getAllIdentityVerifications();
+        return ResponseEntity.ok(applications);
+    }
+
+    /**
+     * Get all submitted IdV
+     * @return List of IdentityVerification
+     */
+    @GetMapping("/getAllSubmittedApps")
+    public ResponseEntity<List<IdentityVerification>> getSubmittedApplications() {
+        List<IdentityVerification> applications = userService.getAllSubmittedIdentityVerifications();
+        return ResponseEntity.ok(applications);
+    }
+
+    /**
+     * All IdV by agent auth0 id
+     * @param agentAuth0Id agentAuth0Id
+     * @return List of IdentityVerification
+     */
+    @GetMapping("/getAllAppsByAgent")
+    public ResponseEntity<List<IdentityVerification>> getAllApplicationsByAgentAuth0Id(@RequestParam String agentAuth0Id) {
+        List<IdentityVerification> applications = userService.getIdentityVerificationsByAgent(agentAuth0Id);
+        return ResponseEntity.ok(applications);
+    }
+
+    /**
+     * Agent submit IdV
+     * @param dto IdentityVerificationSubmitDto
+     * @return IdentityVerification
+     */
+    @PostMapping("/submitApp")
+    public ResponseEntity<IdentityVerification> submitApplication(@RequestBody IdentityVerificationSubmitDto dto) {
+        try {
+            IdentityVerification newApplication = userService.submitIdentityVerification(dto);
+            return ResponseEntity.ok(newApplication);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Admin review IdV
+     * @param dto IdentityVerificationReviewDto
+     * @return IdentityVerification
+     */
+    @PostMapping("/reviewApp")
+    public ResponseEntity<IdentityVerification> reviewApplication(@RequestBody IdentityVerificationReviewDto dto) {
+        try {
+            IdentityVerification reviewedApplication = userService.reviewIdentityVerification(dto);
+            if (reviewedApplication.getStatus() == VerificationStatus.APPROVED) {
+                Agent updatedAgent = userService.setAgentVerified(reviewedApplication.getAgentAuth0Id());
+                if (updatedAgent == null) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                }
+            }
+            return ResponseEntity.ok(reviewedApplication);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * FOR TESTING ONLY
      * @return RE
      */
