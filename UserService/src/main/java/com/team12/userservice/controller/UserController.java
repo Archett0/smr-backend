@@ -118,6 +118,16 @@ public class UserController {
     }
 
     /**
+     * Get agent info by Long id
+     * @param id ID
+     * @return Agent
+     */
+    @GetMapping("/getAgentInfo/{id}")
+    public ResponseEntity<Agent> getAgentInfoById(@PathVariable Long id) {
+        return ResponseEntity.ok(agentService.getAgentById(id));
+    }
+
+    /**
      * Get all users
      * @return Arraylist of all users
      */
@@ -196,6 +206,7 @@ public class UserController {
      * Get all IdV
      * @return List of IdentityVerification
      */
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping("/getAllApps")
     public ResponseEntity<List<IdentityVerification>> getAllApplications() {
         List<IdentityVerification> applications = userService.getAllIdentityVerifications();
@@ -206,6 +217,7 @@ public class UserController {
      * Get all submitted IdV
      * @return List of IdentityVerification
      */
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping("/getAllSubmittedApps")
     public ResponseEntity<List<IdentityVerification>> getSubmittedApplications() {
         List<IdentityVerification> applications = userService.getAllSubmittedIdentityVerifications();
@@ -217,6 +229,7 @@ public class UserController {
      * @param agentAuth0Id agentAuth0Id
      * @return List of IdentityVerification
      */
+    @PreAuthorize("hasAnyRole('AGENT', 'ADMIN')")
     @GetMapping("/getAllAppsByAgent")
     public ResponseEntity<List<IdentityVerification>> getAllApplicationsByAgentAuth0Id(@RequestParam String agentAuth0Id) {
         List<IdentityVerification> applications = userService.getIdentityVerificationsByAgent(agentAuth0Id);
@@ -228,6 +241,7 @@ public class UserController {
      * @param dto IdentityVerificationSubmitDto
      * @return IdentityVerification
      */
+    @PreAuthorize("hasAnyRole('AGENT')")
     @PostMapping("/submitApp")
     public ResponseEntity<IdentityVerification> submitApplication(@RequestBody IdentityVerificationSubmitDto dto) {
         try {
@@ -243,6 +257,7 @@ public class UserController {
      * @param dto IdentityVerificationReviewDto
      * @return IdentityVerification
      */
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/reviewApp")
     public ResponseEntity<IdentityVerification> reviewApplication(@RequestBody IdentityVerificationReviewDto dto) {
         try {
