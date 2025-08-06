@@ -3,12 +3,15 @@ package com.team12.listingservice.service;
 import com.team12.clients.notification.NotificationClient;
 import com.team12.clients.notification.dto.NotificationRequest;
 import com.team12.clients.notification.dto.NotificationType;
+import com.team12.clients.userAction.UserActionClient;
 import com.team12.listingservice.model.Property;
 import com.team12.listingservice.reponsitory.PropertyRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,18 +21,13 @@ public class PropertyService {
 
     private final PropertyRepository propertyRepository;
     private final NotificationClient notificationClient;
+    private final UserActionClient userActionClient;
 
     public List<Property> getAllProperties() {
         return propertyRepository.findAll();
     }
 
     public Optional<Property> getPropertyById(Long id) {
-//        NotificationRequest notificationRequest = new NotificationRequest(
-//                "1",
-//                "test",
-//                NotificationType.SYSTEM
-//        );
-//        notificationClient.sendNotification(notificationRequest);
         return propertyRepository.findById(id);
     }
 
@@ -38,18 +36,38 @@ public class PropertyService {
     }
 
     public Property updateProperty(Long id, Property property) {
-        return propertyRepository.findById(id).map(existing -> {
-            existing.setTitle(property.getTitle());
-            existing.setDescription(property.getDescription());
-            existing.setPrice(property.getPrice());
-            existing.setAddress(property.getAddress());
-            existing.setImg(property.getImg());
-            existing.setLocation(property.getLocation());
-            existing.setNumBedrooms(property.getNumBedrooms());
-            existing.setNumBathrooms(property.getNumBathrooms());
-            existing.setAvailable(property.isAvailable());
-            return propertyRepository.save(existing);
-        }).orElse(null);
+        return propertyRepository.findById(id)
+                .map(existing -> {
+                    BigDecimal oldPrice = existing.getPrice();
+                    BigDecimal newPrice = property.getPrice();
+
+                    existing.setTitle(property.getTitle());
+                    existing.setDescription(property.getDescription());
+                    existing.setPrice(newPrice);
+                    existing.setAddress(property.getAddress());
+                    existing.setImg(property.getImg());
+                    existing.setLocation(property.getLocation());
+                    existing.setNumBedrooms(property.getNumBedrooms());
+                    existing.setNumBathrooms(property.getNumBathrooms());
+                    existing.setAvailable(property.isAvailable());
+
+                    if (oldPrice != null && newPrice != null && oldPrice.compareTo(newPrice) != 0) {
+                        List<Long> userId = userActionClient.getPriceAlertUsers(id);
+                        for(int i = 0; i < userId.size(); i++) {
+                            NotificationRequest notificationRequest = new NotificationRequest(
+                                    userId.get(i).toString(),
+                                    "Property " + existing.getTitle() +
+                                            " price changed from " + oldPrice +
+                                            " to " + newPrice,
+                                    NotificationType.SYSTEM
+                            );
+                            notificationClient.sendNotification(notificationRequest);
+                        }
+                    }
+
+                    return propertyRepository.save(existing);
+                })
+                .orElse(null);
     }
 
     public void deleteProperty(Long id) {
