@@ -41,4 +41,29 @@ public class UserActionController {
         List<Long> userIds = service.getUserIdsWhoFavoritedListing(listingId);
         return ResponseEntity.ok(userIds);
     }
+
+    // 收藏/取消收藏
+    @PostMapping("/price-alert")
+    public ResponseEntity<UserAction> alertPriceAction(@RequestBody UserActionDto dto) {
+        UserAction action = service.alertPriceAction(dto);
+        return ResponseEntity.ok(action);
+    }
+
+
+    @GetMapping("/{propertyId}/price-alert-users")
+    public ResponseEntity<List<Long>> getPriceAlertUsers(
+            @PathVariable("propertyId") Long propertyId
+    ) {
+        List<Long> userIds = service.getUsersWithPriceAlert(propertyId);
+        return ResponseEntity.ok(userIds);
+    }
+
+    @GetMapping("/{propertyId}/price-alert/{userId}")
+    public ResponseEntity<Boolean> isPriceAlertEnabled(
+            @PathVariable("propertyId") Long propertyId,
+            @PathVariable("userId") Long userId
+    ) {
+        boolean enabled = service.isPriceAlertEnabled(userId, propertyId);
+        return ResponseEntity.ok(enabled);
+    }
 }

@@ -4,6 +4,7 @@ import com.team12.useractionservice.dto.UserActionDto;
 import com.team12.useractionservice.model.UserAction;
 import com.team12.useractionservice.model.UserActionType;
 import com.team12.useractionservice.repository.UserActionRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -81,5 +82,43 @@ public class UserActionService {
 
         // 查询并返回用户ID列表
         return repository.findUserIdsByListingIdAndFavorited(listingId);
+    }
+
+    @Transactional
+    public UserAction alertPriceAction(UserActionDto dto) {
+        if (dto.getActionValue() == UserActionType.PRICE_ALERT.getValue()) {
+            return repository
+                    .findByUserIdAndListingIdAndActionValue(dto.getUserId(), dto.getListingId(), UserActionType.PRICE_ALERT.getValue())
+                    .orElseGet(() -> {
+                        UserAction ua = UserAction.builder()
+                                .userId(dto.getUserId())
+                                .listingId(dto.getListingId())
+                                .actionValue(2)
+                                .build();
+                        return repository.save(ua);
+                    });
+        }
+        else if (dto.getActionValue() == UserActionType.CANCEL_PRICE_ALERT.getValue()) {
+            repository.deleteByUserIdAndListingIdAndActionValue(
+                    dto.getUserId(),
+                    dto.getListingId(),
+                    UserActionType.PRICE_ALERT.getValue()
+            );
+            return null;
+        }
+        else {
+            throw new IllegalArgumentException("Invalid actionValue for price alert: " + dto.getActionValue());
+        }
+    }
+
+    public List<Long> getUsersWithPriceAlert(Long listingId) {
+        return repository.findUserIdsByListingIdAndPriceAlert(listingId);
+    }
+
+    public boolean isPriceAlertEnabled(Long userId, Long listingId) {
+        int priceAlertValue = UserActionType.PRICE_ALERT.getValue();
+        return repository.existsByUserIdAndListingIdAndActionValue(
+                userId, listingId, priceAlertValue
+        );
     }
 }
