@@ -12,9 +12,9 @@ import java.util.List;
 @FeignClient(name = "listing-service", url = "${feign.client.listing-service.url}")  // 从配置读取URL
 public interface ListingClient {
 
-    @GetMapping("/api/listings/available")
+    @GetMapping("/listing")
     List<Property> getAllAvailableListings();
 
-    @GetMapping("/api/listings/{id}")
+    @GetMapping("/listing/{id}")
     Property getListingById(@PathVariable Long id);
 }

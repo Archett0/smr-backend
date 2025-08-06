@@ -18,12 +18,11 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
 @Slf4j
 @RequiredArgsConstructor
 public class RecommendationService {
-    private  ListingClient listingClient;
-    private  UserActionClient userActionClient;
+    private final ListingClient listingClient;
+    private final UserActionClient userActionClient;
 
     public List<Property> recommendListings(Long userId) {
         // 1. 获取所有可租房源
