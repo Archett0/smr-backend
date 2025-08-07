@@ -27,6 +27,9 @@ class ListingServiceApplicationTest {
     @BeforeEach
     void setUp() {
         propertyRepository = mock(PropertyRepository.class);
+        notificationClient = mock(NotificationClient.class);
+        userActionClient = mock(UserActionClient.class);
+        userClient = mock(UserClient.class);
         propertyService = new PropertyService(propertyRepository, notificationClient, userActionClient, userClient);
     }
 
