@@ -6,6 +6,7 @@ import com.team12.clients.userAction.UserActionClient;
 import com.team12.listingservice.model.Property;
 import com.team12.listingservice.reponsitory.PropertyRepository;
 import com.team12.listingservice.service.PropertyService;
+import com.team12.listingservice.service.DataSyncService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,7 @@ class ListingServiceApplicationTest {
     private PropertyService propertyService;
     private UserActionClient userActionClient;
     private UserClient userClient;
+    private DataSyncService dataSyncService;
 
     @BeforeEach
     void setUp() {
@@ -30,7 +32,8 @@ class ListingServiceApplicationTest {
         notificationClient = mock(NotificationClient.class);
         userActionClient = mock(UserActionClient.class);
         userClient = mock(UserClient.class);
-        propertyService = new PropertyService(propertyRepository, notificationClient, userActionClient, userClient);
+        dataSyncService = mock(DataSyncService.class);
+        propertyService = new PropertyService(propertyRepository, notificationClient, userActionClient, userClient, dataSyncService);
     }
 
     private Property createSampleProperty(Long id) {
