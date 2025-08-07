@@ -1,5 +1,8 @@
 package com.team12.useractionservice.controller;
 
+import com.team12.clients.listing.ListingClient;
+import com.team12.clients.listing.dto.PropertyDto;
+import com.team12.clients.listing.dto.Property;
 import com.team12.useractionservice.dto.UserActionDto;
 import com.team12.useractionservice.model.UserAction;
 import com.team12.useractionservice.service.UserActionService;
@@ -10,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/actions")
@@ -17,9 +22,11 @@ import java.util.Map;
 public class UserActionController {
 
     private final UserActionService service;
+    private final ListingClient listingClient;
 
-    public UserActionController(UserActionService service) {
+    public UserActionController(UserActionService service, ListingClient listingClient) {
         this.service = service;
+        this.listingClient = listingClient;
     }
 
     // 收藏/取消收藏
@@ -31,9 +38,22 @@ public class UserActionController {
 
     // 获取用户收藏列表
     @GetMapping("/favorites/{userId}")
-    public ResponseEntity<List<UserAction>> getFavorites(@PathVariable Long userId) {
-        List<UserAction> favorites = service.getUserFavorites(userId);
-        return ResponseEntity.ok(favorites);
+    public ResponseEntity<List<Property>> getFavoriteProperties(@PathVariable Long userId) {
+        // 1. 获取用户收藏的房源ID列表
+        List<Long> favoriteListingIds = service.getUserFavorites(userId)
+                .stream()
+                .map(UserAction::getListingId)
+                .collect(Collectors.toList());
+
+        // 2. 获取完整房源信息（提取嵌套的Property对象）
+        List<Property> properties = favoriteListingIds.stream()
+                .map(listingClient::getPropertyById) // 调用Feign客户端
+                .filter(Objects::nonNull)
+                .map(PropertyDto::getProperty)       // 从PropertyDto中提取Property
+                .filter(Objects::nonNull)            // 二次过滤
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(properties);
     }
 
     @GetMapping("/favorites/listing/{listingId}")
