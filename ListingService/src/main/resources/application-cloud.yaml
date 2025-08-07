@@ -4,6 +4,6 @@ spring:
       host: consul
       port: 8500
   datasource:
-    url: jdbc:mysql://34.135.55.220:3306/smr
+    url: jdbc:mysql://34.133.163.236:3306/smr
     username: root
     password: (~MHQh&2FUB(/|Hz
