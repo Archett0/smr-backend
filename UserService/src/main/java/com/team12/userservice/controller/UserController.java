@@ -123,8 +123,12 @@ public class UserController {
      * @return Agent
      */
     @GetMapping("/getAgentInfo/{id}")
-    public ResponseEntity<Agent> getAgentInfoById(@PathVariable Long id) {
-        return ResponseEntity.ok(agentService.getAgentById(id));
+    public ResponseEntity<List<String>> getAgentInfoById(@PathVariable Long id) {
+        List<String> agentInfo = agentService.getAgentById(id);
+        if (agentInfo == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(agentInfo);
     }
 
     /**

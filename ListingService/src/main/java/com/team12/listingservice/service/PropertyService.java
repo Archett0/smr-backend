@@ -3,8 +3,10 @@ package com.team12.listingservice.service;
 import com.team12.clients.notification.NotificationClient;
 import com.team12.clients.notification.dto.NotificationRequest;
 import com.team12.clients.notification.dto.NotificationType;
+import com.team12.clients.user.UserClient;
 import com.team12.clients.userAction.UserActionClient;
 import com.team12.listingservice.model.Property;
+import com.team12.listingservice.model.PropertyDto;
 import com.team12.listingservice.reponsitory.PropertyRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,13 +24,38 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final NotificationClient notificationClient;
     private final UserActionClient userActionClient;
+    private final UserClient userClient;
 
-    public List<Property> getAllProperties() {
-        return propertyRepository.findAll();
+    public List<PropertyDto> getAllPropertiesWithAgentInfo() {
+        List<Property> all = propertyRepository.findAll();
+        List<PropertyDto> dtos = new ArrayList<>(all.size());
+
+        for (Property p : all) {
+            Long agentId = Long.valueOf(p.getAgentId());
+            List<String> agentInfo = userClient.getAgentInfoById(agentId).getBody();
+            PropertyDto dto = new PropertyDto();
+            dto.setProperty(p);
+            dto.setUsername(agentInfo.get(0));
+            dto.setPhoneNumber(agentInfo.get(1));
+
+            dtos.add(dto);
+        }
+
+        return dtos;
     }
 
-    public Optional<Property> getPropertyById(Long id) {
-        return propertyRepository.findById(id);
+    public Optional<PropertyDto> getPropertyById(Long id) {
+        Property property = propertyRepository.findById(id).orElse(null);
+        if(property != null) {
+            Long agentId = Long.valueOf(property.getAgentId());
+            List<String> agentInfo = userClient.getAgentInfoById(agentId).getBody();
+            PropertyDto dto = new PropertyDto();
+            dto.setProperty(property);
+            dto.setUsername(agentInfo.get(0));
+            dto.setPhoneNumber(agentInfo.get(1));
+            return Optional.of(dto);
+        }
+        return null;
     }
 
     public Property createProperty(Property property) {

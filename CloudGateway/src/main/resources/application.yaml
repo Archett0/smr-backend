@@ -54,6 +54,12 @@ spring:
             - Path=/listing/**
           filters:
             - AddResponseHeader=X-Powered-By, SMR-Listing-Service
+        - id: USERACTION-SERVICE
+          uri: lb://user-action
+          predicates:
+            - Path=/actions/**
+          filters:
+            - AddResponseHeader=X-Powered-By, SMR-UserAction-Service
 
 
   security:

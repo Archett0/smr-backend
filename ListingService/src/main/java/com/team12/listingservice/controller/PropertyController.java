@@ -1,6 +1,7 @@
 package com.team12.listingservice.controller;
 
 import com.team12.listingservice.model.Property;
+import com.team12.listingservice.model.PropertyDto;
 import com.team12.listingservice.service.PropertyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +22,12 @@ public class PropertyController {
     }
 
     @GetMapping
-    public List<Property> getAllProperties() {
-        return propertyService.getAllProperties();
+    public List<PropertyDto> getAllProperties() {
+        return propertyService.getAllPropertiesWithAgentInfo();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Property> getPropertyById(@PathVariable Long id) {
+    public ResponseEntity<PropertyDto> getPropertyById(@PathVariable Long id) {
         return propertyService.getPropertyById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
