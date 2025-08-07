@@ -25,8 +25,13 @@ public class AgentService {
         return agentRepository.findAll();
     }
 
-    public Agent getAgentById(Long id) {
-        return agentRepository.findById(id).orElse(null);
+    public List<String> getAgentById(Long id) {
+        return agentRepository.findById(id)
+                .map(agent -> List.of(
+                        agent.getUsername(),
+                        agent.getPhoneNumber() == null ? "" : agent.getPhoneNumber()
+                ))
+                .orElse(null);
     }
 
     public Agent getAgentByOidcSub(String oidcSub) {
