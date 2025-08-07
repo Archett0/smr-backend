@@ -10,10 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -54,6 +51,31 @@ public class UserActionController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(properties);
+    }
+
+    @GetMapping("/recommendations/{userId}")
+    public ResponseEntity<List<Property>> getRecommendations(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "15") int limit) {
+
+        // 1. 获取用户已收藏的房源ID（用于过滤）
+        Set<Long> favoriteIds = service.getUserFavorites(userId)
+                .stream()
+                .map(UserAction::getListingId)
+                .collect(Collectors.toSet());
+
+        // 2. 从listing-service获取所有可用房源
+        List<PropertyDto> allListings = listingClient.getAllProperties();
+
+        // 3. 过滤+随机推荐
+        List<Property> recommendations = allListings.stream()
+                .map(PropertyDto::getProperty)
+                .filter(p -> !favoriteIds.contains(p.getId())) // 排除已收藏
+                .sorted(Comparator.comparingDouble(p -> Math.random())) // 随机排序
+                .limit(limit) // 限制数量
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(recommendations);
     }
 
     @GetMapping("/favorites/listing/{listingId}")
