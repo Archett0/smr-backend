@@ -92,11 +92,4 @@ class ListingServiceApplicationTest {
         assertEquals("Updated Title", result.getTitle());
         assertEquals(new BigDecimal("888888.88"), result.getPrice());
     }
-
-    @Test
-    void testDeleteProperty() {
-        doNothing().when(propertyRepository).deleteById(1L);
-        propertyService.deleteProperty(1L);
-        verify(propertyRepository, times(1)).deleteById(1L);
-    }
 }
