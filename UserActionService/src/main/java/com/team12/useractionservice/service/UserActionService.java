@@ -84,6 +84,13 @@ public class UserActionService {
         return repository.findUserIdsByListingIdAndFavorited(listingId);
     }
 
+    public boolean isListingFavoritedByUser(String userId, Long listingId) {
+        if (userId == null || listingId == null) {
+            return false;
+        }
+        return repository.existsByUserIdAndListingIdAndFavorited(userId, listingId);
+    }
+
     @Transactional
     public UserAction alertPriceAction(UserActionDto dto) {
         if (dto.getActionValue() == UserActionType.PRICE_ALERT.getValue()) {

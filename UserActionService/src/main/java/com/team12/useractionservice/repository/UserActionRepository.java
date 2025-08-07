@@ -23,6 +23,15 @@ public interface UserActionRepository extends JpaRepository<UserAction, Long> {
             "WHERE ua.listingId = :listingId AND ua.actionValue = 1")
     List<Long> findUserIdsByListingIdAndFavorited(@Param("listingId") Long listingId);
 
+    // 新增：检查用户是否收藏过指定房源
+    @Query("SELECT CASE WHEN COUNT(ua) > 0 THEN true ELSE false END " +
+            "FROM UserAction ua " +
+            "WHERE ua.userId = :userId AND ua.listingId = :listingId AND ua.actionValue = 1")
+    boolean existsByUserIdAndListingIdAndFavorited(
+            @Param("userId") String userId,
+            @Param("listingId") Long listingId
+    );
+
 
     Optional<UserAction> findByUserIdAndListingIdAndActionValue(
             Long userId, Long listingId, int actionValue);

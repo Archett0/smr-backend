@@ -7,7 +7,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/actions")
@@ -40,6 +42,15 @@ public class UserActionController {
     ) {
         List<Long> userIds = service.getUserIdsWhoFavoritedListing(listingId);
         return ResponseEntity.ok(userIds);
+    }
+
+    @GetMapping("/favorites/check")
+    public ResponseEntity<Map<String, Boolean>> checkFavoriteStatus(
+            @RequestParam String userId,
+            @RequestParam Long listingId
+    ) {
+        boolean isFavorited = service.isListingFavoritedByUser(userId, listingId);
+        return ResponseEntity.ok(Collections.singletonMap("isFavorited", isFavorited));
     }
 
     // 收藏/取消收藏
