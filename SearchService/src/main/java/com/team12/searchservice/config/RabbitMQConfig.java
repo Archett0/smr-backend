@@ -31,10 +31,14 @@ public class RabbitMQConfig {
         return new TopicExchange(PROPERTY_SYNC_EXCHANGE);
     }
 
-    // Property sync queue
+    // Property sync queue with DLQ support
     @Bean
     public Queue propertyQueue() {
-        return QueueBuilder.durable(PROPERTY_SYNC_QUEUE).build();
+        return QueueBuilder.durable(PROPERTY_SYNC_QUEUE)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", PROPERTY_DLQ)
+                .withArgument("x-message-ttl", 300000) // 5 minutes TTL
+                .build();
     }
 
     // Property sync binding
@@ -52,10 +56,14 @@ public class RabbitMQConfig {
         return new TopicExchange(USER_SYNC_EXCHANGE);
     }
 
-    // User sync queue
+    // User sync queue with DLQ support
     @Bean
     public Queue userQueue() {
-        return QueueBuilder.durable(USER_SYNC_QUEUE).build();
+        return QueueBuilder.durable(USER_SYNC_QUEUE)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", USER_DLQ)
+                .withArgument("x-message-ttl", 300000) // 5 minutes TTL
+                .build();
     }
 
     // User sync binding
@@ -87,6 +95,22 @@ public class RabbitMQConfig {
                 .to(searchAnalyticsExchange())
                 .with(SEARCH_ANALYTICS_ROUTING_KEY);
     }
+
+    // Dead Letter Queue configuration
+    public static final String PROPERTY_DLQ = "property.sync.dlq";
+    public static final String USER_DLQ = "user.sync.dlq";
+    
+    @Bean
+    public Queue propertyDeadLetterQueue() {
+        return QueueBuilder.durable(PROPERTY_DLQ).build();
+    }
+    
+    @Bean
+    public Queue userDeadLetterQueue() {
+        return QueueBuilder.durable(USER_DLQ).build();
+    }
+
+
 
     // JSON message converter
     @Bean

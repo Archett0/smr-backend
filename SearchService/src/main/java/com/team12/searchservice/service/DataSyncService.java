@@ -5,15 +5,18 @@ import com.team12.searchservice.config.RabbitMQConfig;
 import com.team12.searchservice.document.PropertyDocument;
 import com.team12.searchservice.document.UserDocument;
 import com.team12.searchservice.repository.PropertySearchRepository;
+import com.team12.searchservice.repository.UserSearchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.core.Message;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -22,6 +25,7 @@ import java.util.Map;
 public class DataSyncService {
 
     private final PropertySearchRepository propertySearchRepository;
+    private final UserSearchRepository userSearchRepository;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
@@ -29,11 +33,22 @@ public class DataSyncService {
      * Listen for property data synchronization messages
      */
     @RabbitListener(queues = RabbitMQConfig.PROPERTY_SYNC_QUEUE)
-    public void handlePropertySync(String message) {
+    public void handlePropertySync(Object message) {
         try {
             log.info("Received property sync message: {}", message);
             
-            Map<String, Object> messageData = objectMapper.readValue(message, Map.class);
+            Map<String, Object> messageData;
+            if (message instanceof String) {
+                messageData = objectMapper.readValue((String) message, Map.class);
+            } else if (message instanceof Map) {
+                messageData = (Map<String, Object>) message;
+            } else if (message instanceof Message) {
+                String messageBody = new String(((Message) message).getBody());
+                messageData = objectMapper.readValue(messageBody, Map.class);
+            } else {
+                log.error("Unexpected message type: {}", message.getClass());
+                return;
+            }
             String action = (String) messageData.get("action");
             Map<String, Object> propertyData = (Map<String, Object>) messageData.get("data");
             
@@ -58,11 +73,22 @@ public class DataSyncService {
      * Listen for user data synchronization messages
      */
     @RabbitListener(queues = RabbitMQConfig.USER_SYNC_QUEUE)
-    public void handleUserSync(String message) {
+    public void handleUserSync(Object message) {
         try {
             log.info("Received user sync message: {}", message);
             
-            Map<String, Object> messageData = objectMapper.readValue(message, Map.class);
+            Map<String, Object> messageData;
+            if (message instanceof String) {
+                messageData = objectMapper.readValue((String) message, Map.class);
+            } else if (message instanceof Map) {
+                messageData = (Map<String, Object>) message;
+            } else if (message instanceof Message) {
+                String messageBody = new String(((Message) message).getBody());
+                messageData = objectMapper.readValue(messageBody, Map.class);
+            } else {
+                log.error("Unexpected message type: {}", message.getClass());
+                return;
+            }
             String action = (String) messageData.get("action");
             Map<String, Object> userData = (Map<String, Object>) messageData.get("data");
             
@@ -115,8 +141,9 @@ public class DataSyncService {
      */
     private void syncUser(Map<String, Object> userData) {
         try {
-            // User sync would be handled by a dedicated user search repository
-            log.info("User sync not implemented yet - would sync user: {}", userData.get("id"));
+            UserDocument userDocument = convertToUserDocument(userData);
+            userSearchRepository.save(userDocument);
+            log.info("Successfully synced user: {}", userDocument.getId());
             
         } catch (Exception e) {
             log.error("Error syncing user data: {}", userData, e);
@@ -128,8 +155,8 @@ public class DataSyncService {
      */
     private void deleteUser(String userId) {
         try {
-            // User deletion would be handled by a dedicated user search repository
-            log.info("User deletion not implemented yet - would delete user: {}", userId);
+            userSearchRepository.deleteById(userId);
+            log.info("Successfully deleted user: {}", userId);
             
         } catch (Exception e) {
             log.error("Error deleting user: {}", userId, e);
@@ -221,7 +248,7 @@ public class DataSyncService {
      * Convert user data to UserDocument
      */
     private UserDocument convertToUserDocument(Map<String, Object> userData) {
-        return UserDocument.builder()
+        UserDocument.UserDocumentBuilder builder = UserDocument.builder()
                 .id(String.valueOf(userData.get("id")))
                 .userId((String) userData.get("userId"))
                 .name((String) userData.get("name"))
@@ -233,10 +260,40 @@ public class DataSyncService {
                 .location((String) userData.get("location"))
                 .rating((Integer) userData.getOrDefault("rating", 0))
                 .reviewCount((Integer) userData.getOrDefault("reviewCount", 0))
-                .active((Boolean) userData.getOrDefault("active", true))
-                .createdAt(LocalDateTime.now())
-                .lastActive(LocalDateTime.now())
-                .build();
+                .active((Boolean) userData.getOrDefault("active", true));
+
+        // Handle specialties for agents
+        Object specialtiesObj = userData.get("specialties");
+        if (specialtiesObj instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<String> specialties = (List<String>) specialtiesObj;
+            builder.specialties(specialties);
+        }
+
+        // Handle timestamps
+        Object createdAtObj = userData.get("createdAt");
+        if (createdAtObj instanceof String) {
+            try {
+                builder.createdAt(LocalDateTime.parse((String) createdAtObj));
+            } catch (Exception e) {
+                builder.createdAt(LocalDateTime.now());
+            }
+        } else {
+            builder.createdAt(LocalDateTime.now());
+        }
+
+        Object lastActiveObj = userData.get("lastActive");
+        if (lastActiveObj instanceof String) {
+            try {
+                builder.lastActive(LocalDateTime.parse((String) lastActiveObj));
+            } catch (Exception e) {
+                builder.lastActive(LocalDateTime.now());
+            }
+        } else {
+            builder.lastActive(LocalDateTime.now());
+        }
+
+        return builder.build();
     }
 
     /**
@@ -267,9 +324,17 @@ public class DataSyncService {
      */
     public void bulkIndexProperties() {
         log.info("Starting bulk property indexing...");
-        // This would typically fetch data from the main database
-        // and index it to Elasticsearch in batches
-        log.info("Bulk property indexing completed");
+        try {
+            long propertyCount = propertySearchRepository.count();
+            log.info("Current Elasticsearch property count: {}", propertyCount);
+            
+            // In a real implementation, you would fetch from the main database
+            // For now, just log the operation
+            log.info("Bulk property indexing completed");
+            
+        } catch (Exception e) {
+            log.error("Error during bulk property indexing", e);
+        }
     }
 
     /**
@@ -277,8 +342,38 @@ public class DataSyncService {
      */
     public void bulkIndexUsers() {
         log.info("Starting bulk user indexing...");
-        // This would typically fetch data from the main database
-        // and index it to Elasticsearch in batches
-        log.info("Bulk user indexing completed");
+        try {
+            long userCount = userSearchRepository.count();
+            log.info("Current Elasticsearch user count: {}", userCount);
+            
+            // In a real implementation, you would fetch from the main database
+            // For now, just log the operation
+            log.info("Bulk user indexing completed");
+            
+        } catch (Exception e) {
+            log.error("Error during bulk user indexing", e);
+        }
+    }
+
+    /**
+     * Get synchronization statistics
+     */
+    public Map<String, Object> getSyncStatistics() {
+        try {
+            long propertyCount = propertySearchRepository.count();
+            long userCount = userSearchRepository.count();
+            
+            return Map.of(
+                "elasticsearchPropertyCount", propertyCount,
+                "elasticsearchUserCount", userCount,
+                "lastSyncTime", LocalDateTime.now().toString()
+            );
+            
+        } catch (Exception e) {
+            log.error("Error getting sync statistics", e);
+            return Map.of(
+                "error", "Failed to get statistics: " + e.getMessage()
+            );
+        }
     }
 } 
