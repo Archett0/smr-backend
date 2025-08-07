@@ -38,7 +38,9 @@ public class Auth0WebSecurity {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
                 .authorizeExchange(authorizeExchangeSpec ->
-                        authorizeExchangeSpec.anyExchange().authenticated())
+                        authorizeExchangeSpec
+                                .pathMatchers("/actuator/health").permitAll()
+                                .anyExchange().authenticated())
                 .oauth2Login(oauth2LoginSpec ->
                         oauth2LoginSpec.authorizationRequestResolver(
                                 authorizationRequestResolver(repository)
