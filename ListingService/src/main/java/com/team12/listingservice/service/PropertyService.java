@@ -8,6 +8,7 @@ import com.team12.clients.userAction.UserActionClient;
 import com.team12.listingservice.model.Property;
 import com.team12.listingservice.model.PropertyDto;
 import com.team12.listingservice.reponsitory.PropertyRepository;
+import com.team12.listingservice.service.DataSyncService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static com.team12.listingservice.exception.PropertyExceptions.*;
 
 @Slf4j
 @Service
@@ -42,7 +42,6 @@ public class PropertyService {
             dto.setProperty(p);
             dto.setUsername(agentInfo.get(0));
             dto.setPhoneNumber(agentInfo.get(1));
-
             dtos.add(dto);
         }
 
@@ -51,7 +50,7 @@ public class PropertyService {
 
     public Optional<PropertyDto> getPropertyById(Long id) {
         Property property = propertyRepository.findById(id).orElse(null);
-        if(property != null) {
+        if (property != null) {
             Long agentId = Long.valueOf(property.getAgentId());
             List<String> agentInfo = userClient.getAgentInfoById(agentId).getBody();
             PropertyDto dto = new PropertyDto();
@@ -60,29 +59,21 @@ public class PropertyService {
             dto.setPhoneNumber(agentInfo.get(1));
             return Optional.of(dto);
         }
-        return null;
+        return Optional.empty();
     }
 
     @Transactional
     public Property createProperty(Property property) {
         try {
             log.info("Creating new property: {}", property.getTitle());
-            
-            // Set creation timestamp
             property.setPostedAt(LocalDateTime.now());
-            
-            // Save to database
             Property savedProperty = propertyRepository.save(property);
             log.info("Property saved to database with ID: {}", savedProperty.getId());
-            
-            // Sync to Elasticsearch
             dataSyncService.syncPropertyToElasticsearch("create", savedProperty);
-            
             return savedProperty;
-            
         } catch (Exception e) {
             log.error("Error creating property: {}", property.getTitle(), e);
-            throw new RuntimeException("Failed to create property", e);
+            throw new PropertyCreateException("Failed to create property", e);
         }
     }
 
@@ -90,13 +81,11 @@ public class PropertyService {
     public Property updateProperty(Long id, Property property) {
         try {
             log.info("Updating property with ID: {}", id);
-            
+
             return propertyRepository.findById(id).map(existing -> {
-                // Store old price for comparison
                 BigDecimal oldPrice = existing.getPrice();
                 BigDecimal newPrice = property.getPrice();
-                
-                // Update all fields
+
                 existing.setTitle(property.getTitle());
                 existing.setDescription(property.getDescription());
                 existing.setPrice(newPrice);
@@ -107,17 +96,15 @@ public class PropertyService {
                 existing.setNumBathrooms(property.getNumBathrooms());
                 existing.setAvailable(property.isAvailable());
                 existing.setAgentId(property.getAgentId());
-                
-                // Save to database
+
                 Property updatedProperty = propertyRepository.save(existing);
                 log.info("Property updated in database: {}", updatedProperty.getId());
-                
-                // Send price change notifications if price changed
+
                 if (oldPrice != null && newPrice != null && oldPrice.compareTo(newPrice) != 0) {
                     List<Long> userId = userActionClient.getPriceAlertUsers(id);
-                    for(int i = 0; i < userId.size(); i++) {
+                    for (Long uid : userId) {
                         NotificationRequest notificationRequest = new NotificationRequest(
-                                userId.get(i).toString(),
+                                uid.toString(),
                                 "Property " + existing.getTitle() +
                                         " price changed from " + oldPrice +
                                         " to " + newPrice,
@@ -126,20 +113,19 @@ public class PropertyService {
                         notificationClient.sendNotification(notificationRequest);
                     }
                 }
-                
-                // Sync to Elasticsearch
+
                 dataSyncService.syncPropertyToElasticsearch("update", updatedProperty);
-                
+
                 return updatedProperty;
-                
+
             }).orElseThrow(() -> {
                 log.warn("Property not found for update: {}", id);
-                return new RuntimeException("Property not found: " + id);
+                return new PropertyNotFoundException(id);
             });
-            
+
         } catch (Exception e) {
             log.error("Error updating property: {}", id, e);
-            throw new RuntimeException("Failed to update property", e);
+            throw new PropertyCreateException("Failed to update property", e);
         }
     }
 
@@ -147,23 +133,19 @@ public class PropertyService {
     public void deleteProperty(Long id) {
         try {
             log.info("Deleting property with ID: {}", id);
-            
-            // Check if property exists
+
             if (!propertyRepository.existsById(id)) {
                 log.warn("Property not found for deletion: {}", id);
-                throw new RuntimeException("Property not found: " + id);
+                throw new PropertyNotFoundException(id);
             }
-            
-            // Delete from database
+
             propertyRepository.deleteById(id);
             log.info("Property deleted from database: {}", id);
-            
-            // Sync deletion to Elasticsearch
+
             dataSyncService.syncPropertyDeletion(id);
-            
         } catch (Exception e) {
             log.error("Error deleting property: {}", id, e);
-            throw new RuntimeException("Failed to delete property", e);
+            throw new PropertyDeleteException("Failed to delete property", e);
         }
     }
 
@@ -171,32 +153,25 @@ public class PropertyService {
         return property;
     }
 
-    /**
-     * Bulk sync all properties to Elasticsearch
-     * Useful for initial setup or recovery
-     */
     public void bulkSyncAllProperties() {
         log.info("Starting bulk sync of all properties to Elasticsearch");
-        
+
         List<Property> allProperties = propertyRepository.findAll();
         log.info("Found {} properties to sync", allProperties.size());
-        
+
         dataSyncService.bulkSyncProperties(allProperties);
-        
+
         log.info("Bulk sync completed");
     }
 
-    /**
-     * Get property statistics
-     */
     public Map<String, Object> getPropertyStatistics() {
-        long totalProperties = propertyRepository.count();
-        long availableProperties = propertyRepository.countByAvailableTrue();
-        
+        long total = propertyRepository.count();
+        long available = propertyRepository.countByAvailableTrue();
+
         return Map.of(
-            "totalProperties", totalProperties,
-            "availableProperties", availableProperties,
-            "unavailableProperties", totalProperties - availableProperties
+                "totalProperties", total,
+                "availableProperties", available,
+                "unavailableProperties", total - available
         );
     }
 }
