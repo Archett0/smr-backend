@@ -4,11 +4,13 @@ import com.team12.clients.notification.NotificationClient;
 import com.team12.clients.user.UserClient;
 import com.team12.clients.userAction.UserActionClient;
 import com.team12.listingservice.model.Property;
+import com.team12.listingservice.model.PropertyDto;
 import com.team12.listingservice.reponsitory.PropertyRepository;
-import com.team12.listingservice.service.PropertyService;
 import com.team12.listingservice.service.DataSyncService;
+import com.team12.listingservice.service.PropertyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,7 +35,14 @@ class ListingServiceApplicationTest {
         userActionClient = mock(UserActionClient.class);
         userClient = mock(UserClient.class);
         dataSyncService = mock(DataSyncService.class);
-        propertyService = new PropertyService(propertyRepository, notificationClient, userActionClient, userClient, dataSyncService);
+
+        propertyService = new PropertyService(
+                propertyRepository,
+                notificationClient,
+                userActionClient,
+                userClient,
+                dataSyncService
+        );
     }
 
     private Property createSampleProperty(Long id) {
@@ -44,12 +53,11 @@ class ListingServiceApplicationTest {
         property.setPrice(new BigDecimal("123456.78"));
         property.setAddress("123 Sample Street");
         property.setImg("sample.jpg");
-//        property.setLocation(new GeoLocation(1.3521, 103.8198));
         property.setNumBedrooms(3);
         property.setNumBathrooms(2);
         property.setAvailable(true);
         property.setPostedAt(LocalDateTime.now());
-        property.setAgentId("agent-123");
+        property.setAgentId("123");
         return property;
     }
 
@@ -66,17 +74,41 @@ class ListingServiceApplicationTest {
         assertEquals(3, result.getNumBedrooms());
     }
 
+    @Test
+    void testGetPropertyById() {
+        Property property = createSampleProperty(1L);
+        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(userClient.getAgentInfoById(123L)).thenReturn(ResponseEntity.ok(List.of("AgentName", "12345678")));
 
-//    @Test
-//    void testGetPropertyById() {
-//        Property property = createSampleProperty(1L);
-//
-//        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
-//
-//        Property result = propertyService.getPropertyById(1L).orElse(null);
-//        assertNotNull(result);
-//        assertEquals("Sample Title", result.getTitle());
-//    }
+        Optional<PropertyDto> result = propertyService.getPropertyById(1L);
+
+        assertTrue(result.isPresent());
+        assertEquals("Sample Title", result.get().getProperty().getTitle());
+        assertEquals("AgentName", result.get().getUsername());
+    }
+
+    @Test
+    void testGetAllPropertiesWithAgentInfo() {
+        Property p = createSampleProperty(1L);
+        when(propertyRepository.findAll()).thenReturn(List.of(p));
+        when(userClient.getAgentInfoById(123L)).thenReturn(ResponseEntity.ok(List.of("AgentName", "12345678")));
+
+        List<PropertyDto> result = propertyService.getAllPropertiesWithAgentInfo();
+        assertEquals(1, result.size());
+        assertEquals("AgentName", result.get(0).getUsername());
+    }
+
+    @Test
+    void testCreateProperty() {
+        Property property = createSampleProperty(null);
+        Property saved = createSampleProperty(1L);
+
+        when(propertyRepository.save(property)).thenReturn(saved);
+
+        Property result = propertyService.createProperty(property);
+        assertNotNull(result);
+        verify(dataSyncService).syncPropertyToElasticsearch("create", saved);
+    }
 
     @Test
     void testUpdateProperty() {
@@ -87,9 +119,44 @@ class ListingServiceApplicationTest {
 
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(propertyRepository.save(any(Property.class))).thenReturn(update);
+        when(userActionClient.getPriceAlertUsers(1L)).thenReturn(List.of(1L, 2L));
 
         Property result = propertyService.updateProperty(1L, update);
         assertEquals("Updated Title", result.getTitle());
-        assertEquals(new BigDecimal("888888.88"), result.getPrice());
+
+        verify(notificationClient, times(2)).sendNotification(any());
+        verify(dataSyncService).syncPropertyToElasticsearch(eq("update"), any(Property.class));
+    }
+
+    @Test
+    void testDeleteProperty() {
+        when(propertyRepository.existsById(1L)).thenReturn(true);
+
+        propertyService.deleteProperty(1L);
+
+        verify(propertyRepository).deleteById(1L);
+        verify(dataSyncService).syncPropertyDeletion(1L);
+    }
+
+    @Test
+    void testBulkSyncAllProperties() {
+        List<Property> properties = List.of(createSampleProperty(1L));
+        when(propertyRepository.findAll()).thenReturn(properties);
+
+        propertyService.bulkSyncAllProperties();
+
+        verify(dataSyncService).bulkSyncProperties(properties);
+    }
+
+    @Test
+    void testGetPropertyStatistics() {
+        when(propertyRepository.count()).thenReturn(100L);
+        when(propertyRepository.countByAvailableTrue()).thenReturn(80L);
+
+        Map<String, Object> stats = propertyService.getPropertyStatistics();
+
+        assertEquals(100L, stats.get("totalProperties"));
+        assertEquals(80L, stats.get("availableProperties"));
+        assertEquals(20L, stats.get("unavailableProperties"));
     }
 }
