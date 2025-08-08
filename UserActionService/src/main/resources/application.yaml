@@ -2,8 +2,8 @@ server:
   port: 8088
 
 spring:
-#  profiles:
-#    active: cloud
+  profiles:
+    active: cloud
   application:
     name: user-action
   cloud:
