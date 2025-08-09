@@ -210,6 +210,7 @@ public class UserController {
      * @param dto preferences
      * @return BaseUser generic type
      */
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PutMapping("/updateAgentPref")
     public ResponseEntity<BaseUser> updateAgentPref(@AuthenticationPrincipal Jwt jwt, @RequestBody AgentPrefUpdateDto dto) {
         String currentSub = getOidcSubFromJwt(jwt);
@@ -290,14 +291,5 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    /**
-     * FOR TESTING ONLY
-     * @return RE
-     */
-    @GetMapping("/reachableTest")
-    public ResponseEntity<String> reachableTest() {
-        return ResponseEntity.ok("Can!");
     }
 }
