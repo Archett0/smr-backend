@@ -83,7 +83,10 @@ public class NotificationService {
 
     @Transactional
     public void sendNotification(NotificationRequest dto) {
+        log.info("NotificationRequest = {}", dto);
+        log.info("NotificationTouserId = {}", dto.toUserId());
         String toDeviceId = userClient.getDeviceIDById(Long.parseLong(dto.toUserId())).getBody();
+        log.info("toDeviceId = {}", toDeviceId);
         Notification n = buildNotification(
                 "1",
                 "System",
@@ -92,6 +95,7 @@ public class NotificationService {
                 dto.message(),
                 NotificationType.SYSTEM
         );
+        log.info("NewNotification = {}", n);
         saveAndPublish(n);
     }
 
