@@ -9,9 +9,29 @@ public class UserAction {
 
     private Long userId;
 
-    public Long listingId;
+    private Long listingId;
 
     private int actionValue;
 
     private LocalDateTime createdAt  = LocalDateTime.now();
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public Long getListingId() {
+        return listingId;
+    }
+
+    public int getActionValue() {
+        return actionValue;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

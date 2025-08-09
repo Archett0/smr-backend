@@ -57,7 +57,7 @@ public class RecommendationService {
         // 个性化加分（如果有收藏记录）
         if (!favorites.isEmpty()) {
             // 获取用户偏好（根据收藏记录）
-            Property favorite = listingClient.getListingById(favorites.get(0).listingId);
+            Property favorite = listingClient.getListingById(favorites.get(0).getListingId());
 
             // 价格匹配（±20%区间内满分，否则线性递减）
             double priceRatio = Math.abs(listing.getPrice().doubleValue() / favorite.getPrice().doubleValue() - 1);
@@ -82,10 +82,10 @@ public class RecommendationService {
 
     // 距离计算
     private double calculateDistance(GeoLocation loc1, GeoLocation loc2) {
-        double lat1 = loc1.latitude;
-        double lon1 = loc1.longitude;
-        double lat2 = loc2.latitude;
-        double lon2 = loc2.longitude;
+        double lat1 = loc1.getLatitude();
+        double lon1 = loc1.getLongitude();
+        double lat2 = loc2.getLatitude();
+        double lon2 = loc2.getLongitude();
 
         return Math.sqrt(Math.pow(lat1 - lat2, 2) + Math.pow(lon1 - lon2, 2));
     }
