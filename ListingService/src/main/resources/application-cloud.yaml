@@ -7,3 +7,9 @@ spring:
     url: jdbc:mysql://34.133.163.236:3306/smr
     username: root
     password: (~MHQh&2FUB(/|Hz
+  rabbitmq:
+    host: 34.143.174.70
+    port: 5672
+    username: admin
+    password: bInvd0fLiuQwoDj
+    virtual-host: /

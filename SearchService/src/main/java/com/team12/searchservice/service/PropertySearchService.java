@@ -104,6 +104,80 @@ public class PropertySearchService {
     }
 
     /**
+     * Build flexible search that can combine multiple criteria
+     */
+    private Page<PropertyDocument> buildFlexibleSearch(PropertySearchRequest request, Pageable pageable) {
+        try {
+            // Start with all available properties
+            Page<PropertyDocument> page = propertySearchRepository.findByAvailable(true, pageable);
+            
+            // Apply filters sequentially
+            if (StringUtils.hasText(request.getKeyword())) {
+                page = applyKeywordFilter(page, request.getKeyword());
+            }
+            
+            if (StringUtils.hasText(request.getCity())) {
+                page = applyCityFilter(page, request.getCity());
+            }
+            
+            if (request.getMinPrice() != null || request.getMaxPrice() != null) {
+                page = applyPriceFilter(page, request.getMinPrice(), request.getMaxPrice());
+            }
+            
+            if (request.getMinBedrooms() != null || request.getMaxBedrooms() != null) {
+                page = applyBedroomFilter(page, request.getMinBedrooms(), request.getMaxBedrooms());
+            }
+            
+            if (request.getMinBathrooms() != null || request.getMaxBathrooms() != null) {
+                page = applyBathroomFilter(page, request.getMinBathrooms(), request.getMaxBathrooms());
+            }
+            
+            return page;
+            
+        } catch (Exception e) {
+            log.error("Error in flexible search", e);
+            // Fallback to simple available search
+            return propertySearchRepository.findByAvailable(true, pageable);
+        }
+    }
+
+    /**
+     * Search properties by bedroom and bathroom range
+     */
+    private Page<PropertyDocument> searchByBedroomAndBathroomRange(
+            Integer minBedrooms, Integer maxBedrooms, 
+            Integer minBathrooms, Integer maxBathrooms, 
+            Pageable pageable) {
+        
+        try {
+            // First try to find properties within the bedroom range
+            Page<PropertyDocument> bedroomResults = propertySearchRepository
+                .findByNumBedroomsBetweenAndAvailable(minBedrooms, maxBedrooms, true, pageable);
+            
+            // If we have results, filter by bathroom range
+            if (!bedroomResults.isEmpty()) {
+                List<PropertyDocument> filteredResults = bedroomResults.getContent().stream()
+                    .filter(property -> {
+                        Integer bathrooms = property.getNumBathrooms();
+                        return bathrooms != null && bathrooms >= minBathrooms && bathrooms <= maxBathrooms;
+                    })
+                    .collect(Collectors.toList());
+                
+                // Create a new page with filtered results
+                return new org.springframework.data.domain.PageImpl<>(
+                    filteredResults, pageable, bedroomResults.getTotalElements());
+            }
+            
+            return bedroomResults;
+            
+        } catch (Exception e) {
+            log.error("Error searching by bedroom and bathroom range", e);
+            // Fallback to simple available search
+            return propertySearchRepository.findByAvailable(true, pageable);
+        }
+    }
+
+    /**
      * Get search suggestions
      */
     public List<String> getSuggestions(String keyword, Integer size) {
@@ -225,19 +299,9 @@ public class PropertySearchService {
             Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), buildSort(request));
             Page<PropertyDocument> page;
 
-            // Simple text search
-            if (StringUtils.hasText(request.getKeyword())) {
-                page = propertySearchRepository.findByTitleContainingOrDescriptionContainingOrAddressContaining(
-                    request.getKeyword(), request.getKeyword(), request.getKeyword(), pageable);
-            } else if (StringUtils.hasText(request.getCity())) {
-                page = propertySearchRepository.findByCityAndAvailable(request.getCity(), true, pageable);
-            } else if (request.getMinPrice() != null || request.getMaxPrice() != null) {
-                BigDecimal minPrice = request.getMinPrice() != null ? request.getMinPrice() : BigDecimal.ZERO;
-                BigDecimal maxPrice = request.getMaxPrice() != null ? request.getMaxPrice() : BigDecimal.valueOf(1000000);
-                page = propertySearchRepository.findByPriceBetweenAndAvailable(minPrice, maxPrice, true, pageable);
-            } else {
-                page = propertySearchRepository.findByAvailable(true, pageable);
-            }
+            // Build search criteria based on request parameters
+            // Use a more flexible approach that can combine multiple criteria
+            page = buildFlexibleSearch(request, pageable);
 
             return SearchResponse.<PropertyDocument>builder()
                 .content(page.getContent())
@@ -257,5 +321,103 @@ public class PropertySearchService {
             log.error("Error in simple property search", e);
             return createEmptyResponse(request);
         }
+    }
+
+    /**
+     * Apply keyword filter to search results
+     */
+    private Page<PropertyDocument> applyKeywordFilter(Page<PropertyDocument> page, String keyword) {
+        List<PropertyDocument> filteredResults = page.getContent().stream()
+            .filter(property -> {
+                String title = property.getTitle() != null ? property.getTitle().toLowerCase() : "";
+                String description = property.getDescription() != null ? property.getDescription().toLowerCase() : "";
+                String address = property.getAddress() != null ? property.getAddress().toLowerCase() : "";
+                String city = property.getCity() != null ? property.getCity().toLowerCase() : "";
+                
+                String searchKeyword = keyword.toLowerCase();
+                return title.contains(searchKeyword) || 
+                       description.contains(searchKeyword) || 
+                       address.contains(searchKeyword) || 
+                       city.contains(searchKeyword);
+            })
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            filteredResults, page.getPageable(), page.getTotalElements());
+    }
+
+    /**
+     * Apply city filter to search results
+     */
+    private Page<PropertyDocument> applyCityFilter(Page<PropertyDocument> page, String city) {
+        List<PropertyDocument> filteredResults = page.getContent().stream()
+            .filter(property -> {
+                String propertyCity = property.getCity() != null ? property.getCity().toLowerCase() : "";
+                return propertyCity.contains(city.toLowerCase());
+            })
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            filteredResults, page.getPageable(), page.getTotalElements());
+    }
+
+    /**
+     * Apply price filter to search results
+     */
+    private Page<PropertyDocument> applyPriceFilter(Page<PropertyDocument> page, BigDecimal minPrice, BigDecimal maxPrice) {
+        List<PropertyDocument> filteredResults = page.getContent().stream()
+            .filter(property -> {
+                BigDecimal price = property.getPrice();
+                if (price == null) return false;
+                
+                boolean minOk = minPrice == null || price.compareTo(minPrice) >= 0;
+                boolean maxOk = maxPrice == null || price.compareTo(maxPrice) <= 0;
+                
+                return minOk && maxOk;
+            })
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            filteredResults, page.getPageable(), page.getTotalElements());
+    }
+
+    /**
+     * Apply bedroom filter to search results
+     */
+    private Page<PropertyDocument> applyBedroomFilter(Page<PropertyDocument> page, Integer minBedrooms, Integer maxBedrooms) {
+        List<PropertyDocument> filteredResults = page.getContent().stream()
+            .filter(property -> {
+                Integer bedrooms = property.getNumBedrooms();
+                if (bedrooms == null) return false;
+                
+                boolean minOk = minBedrooms == null || bedrooms >= minBedrooms;
+                boolean maxOk = maxBedrooms == null || bedrooms <= maxBedrooms;
+                
+                return minOk && maxOk;
+            })
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            filteredResults, page.getPageable(), page.getTotalElements());
+    }
+
+    /**
+     * Apply bathroom filter to search results
+     */
+    private Page<PropertyDocument> applyBathroomFilter(Page<PropertyDocument> page, Integer minBathrooms, Integer maxBathrooms) {
+        List<PropertyDocument> filteredResults = page.getContent().stream()
+            .filter(property -> {
+                Integer bathrooms = property.getNumBathrooms();
+                if (bathrooms == null) return false;
+                
+                boolean minOk = minBathrooms == null || bathrooms >= minBathrooms;
+                boolean maxOk = maxBathrooms == null || bathrooms <= maxBathrooms;
+                
+                return minOk && maxOk;
+            })
+            .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(
+            filteredResults, page.getPageable(), page.getTotalElements());
     }
 } 

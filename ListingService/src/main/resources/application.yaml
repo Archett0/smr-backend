@@ -43,6 +43,11 @@ spring:
 # Logging Configuration
 logging:
   level:
+    com.team12.clients.user.UserClient: DEBUG
+    feign.Logger: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    org.springframework.cloud.netflix.feign: DEBUG
     com.team12.listingservice: DEBUG
     org.springframework.amqp: INFO
   pattern:
