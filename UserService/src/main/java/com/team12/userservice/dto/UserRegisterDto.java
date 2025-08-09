@@ -22,4 +22,7 @@ public class UserRegisterDto {
 
     @JsonProperty("sub")
     private String sub;
+
+    @JsonProperty("deviceId")
+    private String deviceId;
 }

@@ -23,8 +23,14 @@ public class Notification {
     @Column(nullable = false, length = 64)
     private String fromId;
 
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String fromDeviceId;
+
     @Column(nullable = false, length = 64)
     private String toId;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String toDeviceId;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String message;

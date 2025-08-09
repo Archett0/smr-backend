@@ -41,6 +41,7 @@ public class UserService {
         BaseUser user = baseUserRepository.findByOidcSub(registerDto.getSub()).orElse(null);
         if (user != null) {
             user.setLastLoginAt(LocalDateTime.now());
+            user.setDeviceId(registerDto.getDeviceId());
             baseUserRepository.save(user);
             return new LoginCompleteDto(user);
         }
@@ -59,6 +60,7 @@ public class UserService {
         newUser.setEnabled(true);
         newUser.setPicture(registerDto.getPicture());
         newUser.setRole(role);
+        newUser.setDeviceId(registerDto.getDeviceId());
 
         if (newUser instanceof Agent agent) {
             agent.setVerified(false);
@@ -159,5 +161,11 @@ public class UserService {
         }
         agent.setVerified(true);
         return agentRepository.save(agent);
+    }
+
+    public String getDeviceIDById(Long id) {
+        return baseUserRepository.findById(id)
+                .map(BaseUser::getDeviceId)
+                .orElse(null);
     }
 }

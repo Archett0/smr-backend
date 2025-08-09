@@ -5,7 +5,6 @@ import com.team12.listingservice.model.PropertyDto;
 import com.team12.listingservice.service.PropertyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;

@@ -42,12 +42,6 @@ spring:
             - Path=/notification/**
           filters:
             - AddResponseHeader=X-Powered-By, SMR-Notification-Service
-        - id: WEBSOCKET-ROUTE
-          uri: lb://notification
-          predicates:
-            - Path=/ws/**
-          filters:
-            - AddResponseHeader=X-Request-Type, WebSocket
         - id: LISTING-SERVICE
           uri: lb://listing
           predicates:

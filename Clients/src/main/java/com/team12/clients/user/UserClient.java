@@ -14,4 +14,7 @@ public interface UserClient {
 
     @GetMapping("/getAgentInfo/{id}")
     ResponseEntity<List<String>> getAgentInfoById(@PathVariable("id") Long id);
+
+    @GetMapping("/getDeviceId/{id}")
+    ResponseEntity<String> getDeviceIDById(@PathVariable("id") Long id);
 }
