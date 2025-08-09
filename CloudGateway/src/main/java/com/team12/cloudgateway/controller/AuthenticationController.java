@@ -1,6 +1,7 @@
 package com.team12.cloudgateway.controller;
 
 import com.team12.cloudgateway.service.IdTokenService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -26,6 +27,7 @@ public class AuthenticationController {
     /**
      * FOR TEST USAGE ONLY
      */
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping("/print-token")
     public Mono<String> printToken(Principal principal) {
         return clientService.loadAuthorizedClient("auth0", principal.getName())
@@ -39,14 +41,7 @@ public class AuthenticationController {
                 .defaultIfEmpty("No Access Token found");
     }
 
-    /**
-     * FOR TEST USAGE ONLY
-     */
-    @GetMapping("/test")
-    public String printToken() {
-        return "Pass";
-    }
-
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping("/test-intercept-id-token")
     public Mono<String> testInterceptIdToken(OAuth2AuthenticationToken authentication) {
         return idTokenService.getIdToken(authentication);
