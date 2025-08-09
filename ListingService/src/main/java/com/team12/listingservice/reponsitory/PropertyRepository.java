@@ -2,7 +2,6 @@ package com.team12.listingservice.reponsitory;
 
 import com.team12.listingservice.model.Property;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 public interface PropertyRepository extends JpaRepository<Property, Long> {
     

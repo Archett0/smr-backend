@@ -1,6 +1,7 @@
 package com.team12.notificationservice.controller;
 
 import com.team12.clients.notification.dto.NotificationRequest;
+import com.team12.notificationservice.dto.NotificationCreateDto;
 import com.team12.notificationservice.model.Notification;
 import com.team12.notificationservice.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,15 +25,15 @@ public class NotificationController {
 
     @PostMapping
     @Operation(summary = "Create a new notification")
-    public ResponseEntity<Notification> create(@RequestBody Notification notification) {
+    public ResponseEntity<Notification> create(@RequestBody NotificationCreateDto notification) {
         return ResponseEntity.ok(notificationService.createNotification(notification));
     }
 
     @PostMapping("/send")
     public void sendNotification(@RequestBody NotificationRequest notificationRequest) {
-        //log.info("New notification... {}", notificationRequest);
         notificationService.sendNotification(notificationRequest);
     }
+
 
     @GetMapping
     @Operation(summary = "Get all notifications")

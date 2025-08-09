@@ -12,12 +12,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NotificationDto {
-    private Long id;
+public class NotificationCreateDto {
     private String fromId;
-    private String fromDeviceId;
     private String toId;
-    private String toDeviceId;
     private String message;
     private NotificationType type;
     private boolean isRead;

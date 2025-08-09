@@ -120,7 +120,7 @@ public class UserController {
     /**
      * Get agent info by Long id
      * @param id ID
-     * @return Agent
+     * @return List<String>
      */
     @GetMapping("/getAgentInfo/{id}")
     public ResponseEntity<List<String>> getAgentInfoById(@PathVariable Long id) {
@@ -129,6 +129,20 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(agentInfo);
+    }
+
+    /**
+     * Get device id by userID
+     * @param id ID
+     * @return String
+     */
+    @GetMapping("/getDeviceId/{id}")
+    public ResponseEntity<String> getDeviceIDById(@PathVariable Long id) {
+        String deviceID = userService.getDeviceIDById(id);
+        if (deviceID == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(deviceID);
     }
 
     /**

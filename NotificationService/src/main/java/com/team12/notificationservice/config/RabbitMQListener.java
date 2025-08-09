@@ -1,7 +1,6 @@
 package com.team12.notificationservice.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.team12.notificationservice.dto.NotificationDto;
 import com.team12.notificationservice.model.Notification;
 import com.team12.notificationservice.service.MessagingService;
@@ -9,8 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Component
@@ -18,7 +16,6 @@ import java.util.UUID;
 public class RabbitMQListener {
 
     private final MessagingService messagingService;
-    private final ObjectMapper objectMapper;
 
     @RabbitListener(queues = "notification.queue", concurrency = "5")
     public void receiveMessage(Notification notification) {
@@ -26,24 +23,29 @@ public class RabbitMQListener {
             NotificationDto notificationDTO = NotificationDto.builder()
                     .id(notification.getId())
                     .fromId(notification.getFromId())
+                    .fromDeviceId(notification.getFromDeviceId())
                     .toId(notification.getToId())
+                    .toDeviceId(notification.getToDeviceId())
                     .message(notification.getMessage())
                     .type(notification.getType())
                     .isRead(notification.isIsread())
                     .createdAt(notification.getCreatedAt())
                     .build();
 
-            String notificationJson = objectMapper.writeValueAsString(notificationDTO);
+            String toDeviceID = notification.getToDeviceId();
+            String title = notification.getType().toString();
+            String body = notification.getMessage();
 
-            String userId = notification.getToId();
+            messagingService.sendNotificationToDevice(toDeviceID, title, body ,notificationDTO);
 
-            messagingService.sendMessageToUser(userId, notificationJson);
-
-            log.info("Forwarded notification to user: {} with message: {}", userId, notificationJson);
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid String format for agentId: {}", notification.getToId());
+            log.info("Forwarded notification to user: {} with message: {}", notificationDTO.getToId(), notificationDTO);
         } catch (JsonProcessingException e) {
             log.error("Error while converting notification to JSON", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Thread was interrupted", e);
+        } catch (ExecutionException e) {
+            log.error("Execution error", e);
         }
     }
 }

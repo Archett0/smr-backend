@@ -41,4 +41,7 @@ public abstract class BaseUser {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String DeviceId;
 }
