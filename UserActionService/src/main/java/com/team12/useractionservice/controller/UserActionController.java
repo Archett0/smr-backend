@@ -40,7 +40,7 @@ public class UserActionController {
         List<Long> favoriteListingIds = service.getUserFavorites(userId)
                 .stream()
                 .map(UserAction::getListingId)
-                .collect(Collectors.toList());
+                .toList();
 
         // 2. 获取完整房源信息（提取嵌套的Property对象）
         List<Property> properties = favoriteListingIds.stream()
@@ -48,7 +48,7 @@ public class UserActionController {
                 .filter(Objects::nonNull)
                 .map(PropertyDto::getProperty)       // 从PropertyDto中提取Property
                 .filter(Objects::nonNull)            // 二次过滤
-                .collect(Collectors.toList());
+                .toList();
 
         return ResponseEntity.ok(properties);
     }
@@ -73,7 +73,7 @@ public class UserActionController {
                 .filter(p -> !favoriteIds.contains(p.getId())) // 排除已收藏
                 .sorted(Comparator.comparingDouble(p -> Math.random())) // 随机排序
                 .limit(limit) // 限制数量
-                .collect(Collectors.toList());
+                .toList();
 
         return ResponseEntity.ok(recommendations);
     }
