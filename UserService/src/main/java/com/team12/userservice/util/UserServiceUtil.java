@@ -6,6 +6,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
 
 public class UserServiceUtil {
+
+    private UserServiceUtil() {
+        throw new UnsupportedOperationException("Utility class should not be instantiated");
+    }
+
     /**
      * Retrieve roles from access token
      *

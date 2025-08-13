@@ -43,5 +43,5 @@ public abstract class BaseUser {
     private Role role;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String DeviceId;
+    private String deviceId;
 }
