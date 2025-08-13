@@ -71,7 +71,7 @@ class AgentServiceTest {
         List<Agent> agents = agentService.getAllAgents();
 
         assertThat(agents).hasSize(1);
-        assertThat(agents.get(0)).isEqualTo(agent);
+        assertThat(agents.getFirst()).isEqualTo(agent);
     }
 
     @Test
@@ -80,9 +80,8 @@ class AgentServiceTest {
 
         List<String> result = agentService.getAgentById(1L);
 
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0)).isEqualTo(agent.getUsername());
+        assertThat(result).isNotNull().hasSize(2);
+        assertThat(result.getFirst()).isEqualTo(agent.getUsername());
     }
 
     @Test
@@ -92,6 +91,30 @@ class AgentServiceTest {
         List<String> result = agentService.getAgentById(1L);
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    void getAgentById_ShouldReturnPhoneNumberAsEmptyString_WhenPhoneNumberIsNull() {
+        agent.setPhoneNumber(null);
+        when(agentRepository.findById(1L)).thenReturn(Optional.of(agent));
+
+        List<String> result = agentService.getAgentById(1L);
+
+        assertThat(result).isNotNull().hasSize(2);
+        assertThat(result.get(0)).isEqualTo(agent.getUsername());
+        assertThat(result.get(1)).isEmpty();
+    }
+
+    @Test
+    void getAgentById_ShouldReturnPhoneNumber_WhenPhoneNumberIsNotNull() {
+        agent.setPhoneNumber("123-456-789");
+        when(agentRepository.findById(1L)).thenReturn(Optional.of(agent));
+
+        List<String> result = agentService.getAgentById(1L);
+
+        assertThat(result).isNotNull().hasSize(2);
+        assertThat(result.get(0)).isEqualTo(agent.getUsername());
+        assertThat(result.get(1)).isEqualTo("123-456-789");
     }
 
     @Test
