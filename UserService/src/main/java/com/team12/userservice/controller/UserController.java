@@ -95,25 +95,29 @@ public class UserController {
      */
     @GetMapping("/fullUserBySub/{oidcSub}")
     public ResponseEntity<BaseUser> getFullUserInfoByOidcSub(@AuthenticationPrincipal Jwt jwt, @PathVariable String oidcSub) {
-        Role role = getRoleFromJwt(jwt);
-        String currentSub = getOidcSubFromJwt(jwt);
-        switch (role) {
-            case ADMIN:
-                return ResponseEntity.ok(userService.getUserByOidcSub(oidcSub)); // admin should have full access
-            case AGENT:
-                if (Objects.equals(oidcSub, currentSub)) {
-                    return ResponseEntity.ok(agentService.getAgentByOidcSub(oidcSub));
-                } else {
-                    return ResponseEntity.notFound().build();
-                }
-            case TENANT:
-                if (Objects.equals(oidcSub, currentSub)) {
-                    return ResponseEntity.ok(tenantService.getTenantByOidcSub(oidcSub));
-                } else {
-                    return ResponseEntity.notFound().build();
-                }
-            case null:
-                throw new IllegalArgumentException("Unknown user type");
+        try {
+            Role role = getRoleFromJwt(jwt);
+            String currentSub = getOidcSubFromJwt(jwt);
+            switch (role) {
+                case ADMIN:
+                    return ResponseEntity.ok(userService.getUserByOidcSub(oidcSub)); // admin should have full access
+                case AGENT:
+                    if (Objects.equals(oidcSub, currentSub)) {
+                        return ResponseEntity.ok(agentService.getAgentByOidcSub(oidcSub));
+                    } else {
+                        return ResponseEntity.notFound().build();
+                    }
+                case TENANT:
+                    if (Objects.equals(oidcSub, currentSub)) {
+                        return ResponseEntity.ok(tenantService.getTenantByOidcSub(oidcSub));
+                    } else {
+                        return ResponseEntity.notFound().build();
+                    }
+                default:
+                    return ResponseEntity.internalServerError().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
