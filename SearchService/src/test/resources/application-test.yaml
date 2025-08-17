@@ -1,0 +1,28 @@
+spring:
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
+  cache:
+    type: redis
+    cache-names:
+      - search-stats
+      - city-aggregations
+      - price-aggregations
+    redis:
+      time-to-live: 300000
+
+logging:
+  level:
+    com.team12.searchservice: DEBUG
+    org.springframework.data.elasticsearch: DEBUG
+    org.springframework.cache: DEBUG
+
+# 测试环境配置
+test:
+  elasticsearch:
+    host: localhost
+    port: 9200
+  redis:
+    host: localhost
+    port: 6379 
